@@ -61,6 +61,8 @@ public final class CxConstants {
     static final String ADDITONAL_PARAMS = "--additional-params";
     static final String ENGINE = "--engine";
     static final String SUB_CMD_KICS_REALTIME = "kics-realtime";
+    static final String SUB_CMD_OSS_REALTIME = "oss-realtime";
+    static final String IGNORED_FILE_PATH = "--ignored-file-path";
     static final String SCA_REMEDIATION_PACKAGE_FILES = "--package-files";
     static final String SCA_REMEDIATION_PACKAGE = "--package";
     static final String SCA_REMEDIATION_PACKAGE_VERSION = "--package-version";
@@ -74,4 +76,5 @@ public final class CxConstants {
     static final String SUB_CMD_LEARN_MORE = "learn-more";
     static final String SUB_CMD_TENANT = "tenant";
     static final String IDE_SCANS_KEY = "scan.config.plugins.ideScans";
+    static final String AI_MCP_SERVER_KEY = "scan.config.plugins.aiMcpServer";
 }

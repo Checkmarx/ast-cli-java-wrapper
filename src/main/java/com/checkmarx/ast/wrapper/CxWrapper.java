@@ -404,6 +404,26 @@ public class CxWrapper {
         return Execution.executeCommand(withConfigArguments(arguments), logger, KicsRealtimeResults::fromLine);
     }
 
+    public String ossRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+            throws IOException, InterruptedException, CxException {
+        this.logger.info("Executing 'scan oss-realtime' command using the CLI.");
+        this.logger.info("Source: {} IgnoredFilePath: {}", sourcePath, ignoredFilePath);
+        List<String> arguments = new ArrayList<>();
+        arguments.add(CxConstants.CMD_SCAN);
+        arguments.add(CxConstants.SUB_CMD_OSS_REALTIME);
+        arguments.add(CxConstants.SOURCE);
+        arguments.add(sourcePath);
+        if (StringUtils.isNotBlank(ignoredFilePath)) {
+            arguments.add(CxConstants.IGNORED_FILE_PATH);
+            arguments.add(ignoredFilePath);
+        }
+        return Execution.executeCommand(withConfigArguments(arguments), logger, line -> line);
+    }
+
+    public String ossRealtimeScan(@NonNull String sourcePath)
+            throws IOException, InterruptedException, CxException {
+        return ossRealtimeScan(sourcePath, null);
+    }
     public KicsRemediation kicsRemediate(@NonNull String resultsFile, String kicsFile, String engine,String similarityIds)
             throws IOException, InterruptedException, CxException {
         this.logger.info("Executing 'remediation kics' command using the CLI.");
@@ -453,6 +473,18 @@ public class CxWrapper {
                              .findFirst()
                              .map(t -> Boolean.parseBoolean(t.getValue()))
                              .orElse(false);
+    }
+
+    public boolean aiMcpServerEnabled() throws CxException, IOException, InterruptedException {
+        List<TenantSetting> tenantSettings = tenantSettings();
+        if (tenantSettings == null) {
+            throw new CxException(1, "Unable to parse tenant settings");
+        }
+        return tenantSettings.stream()
+                .filter(t -> t.getKey().equals(CxConstants.AI_MCP_SERVER_KEY))
+                .findFirst()
+                .map(t -> Boolean.parseBoolean(t.getValue()))
+                .orElse(false);
     }
 
     public List<TenantSetting> tenantSettings() throws CxException, IOException, InterruptedException {
