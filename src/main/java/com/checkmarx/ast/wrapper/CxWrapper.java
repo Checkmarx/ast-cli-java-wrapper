@@ -4,6 +4,7 @@ import com.checkmarx.ast.asca.ScanResult;
 import com.checkmarx.ast.codebashing.CodeBashing;
 import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
 import com.checkmarx.ast.learnMore.LearnMore;
+import com.checkmarx.ast.ossrealtime.OssRealtimeResults;
 import com.checkmarx.ast.predicate.CustomState;
 import com.checkmarx.ast.predicate.Predicate;
 import com.checkmarx.ast.project.Project;
@@ -404,26 +405,46 @@ public class CxWrapper {
         return Execution.executeCommand(withConfigArguments(arguments), logger, KicsRealtimeResults::fromLine);
     }
 
-    public String ossRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+    public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
             throws IOException, InterruptedException, CxException {
-        this.logger.info("Executing 'scan oss-realtime' command using the CLI.");
+        this.logger.info("Executing 'scan {}' command using the CLI.", subCommand);
         this.logger.info("Source: {} IgnoredFilePath: {}", sourcePath, ignoredFilePath);
         List<String> arguments = new ArrayList<>();
         arguments.add(CxConstants.CMD_SCAN);
-        arguments.add(CxConstants.SUB_CMD_OSS_REALTIME);
+        arguments.add(subCommand);
         arguments.add(CxConstants.SOURCE);
         arguments.add(sourcePath);
         if (StringUtils.isNotBlank(ignoredFilePath)) {
             arguments.add(CxConstants.IGNORED_FILE_PATH);
             arguments.add(ignoredFilePath);
         }
-        return Execution.executeCommand(withConfigArguments(arguments), logger, line -> line);
+        return Execution.executeCommand(withConfigArguments(arguments), logger, resultParser);
     }
 
-    public String ossRealtimeScan(@NonNull String sourcePath)
+    // OSS Realtime
+    public OssRealtimeResults ossRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return ossRealtimeScan(sourcePath, null);
+        return realtimeScan(CxConstants.SUB_CMD_OSS_REALTIME, sourcePath, ignoredFilePath, OssRealtimeResults::fromLine);
     }
+
+    // IAC Realtime
+    public String iacRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+            throws IOException, InterruptedException, CxException {
+        return realtimeScan(CxConstants.SUB_CMD_IAC_REALTIME, sourcePath, ignoredFilePath, line -> line);
+    }
+
+    // Secrets Realtime
+    public String secretsRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+            throws IOException, InterruptedException, CxException {
+        return realtimeScan(CxConstants.SUB_CMD_SECRETS_REALTIME, sourcePath, ignoredFilePath, line -> line);
+    }
+
+    // Containers Realtime
+    public String containersRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+            throws IOException, InterruptedException, CxException {
+        return realtimeScan(CxConstants.SUB_CMD_CONTAINERS_REALTIME, sourcePath, ignoredFilePath, line -> line);
+    }
+
     public KicsRemediation kicsRemediate(@NonNull String resultsFile, String kicsFile, String engine,String similarityIds)
             throws IOException, InterruptedException, CxException {
         this.logger.info("Executing 'remediation kics' command using the CLI.");
