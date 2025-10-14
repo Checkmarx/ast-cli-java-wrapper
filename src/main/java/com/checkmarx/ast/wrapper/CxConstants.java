@@ -74,4 +74,8 @@ public final class CxConstants {
     static final String SUB_CMD_LEARN_MORE = "learn-more";
     static final String SUB_CMD_TENANT = "tenant";
     static final String IDE_SCANS_KEY = "scan.config.plugins.ideScans";
+    static final String CMD_ENGINES = "engines";
+    static final String SUB_CMD_LIST_API = "list-api";
+    static final String OUTPUT_FORMAT = "--output-format";
+    static final String ENGINE_NAME_FILTER = "--engine-name";
 }

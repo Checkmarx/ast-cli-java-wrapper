@@ -2,6 +2,7 @@ package com.checkmarx.ast.wrapper;
 
 import com.checkmarx.ast.asca.ScanResult;
 import com.checkmarx.ast.codebashing.CodeBashing;
+import com.checkmarx.ast.engines.Engines;
 import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
 import com.checkmarx.ast.learnMore.LearnMore;
 import com.checkmarx.ast.predicate.CustomState;
@@ -512,6 +513,15 @@ public class CxWrapper {
         return arguments;
     }
 
+    private List<String> jsonArguments2() {
+        List<String> arguments = new ArrayList<>();
+
+        arguments.add(CxConstants.OUTPUT_FORMAT);
+        arguments.add(CxConstants.FORMAT_JSON);
+
+        return arguments;
+    }
+
     private List<String> filterArguments(String filter) {
         List<String> arguments = new ArrayList<>();
 
@@ -521,5 +531,28 @@ public class CxWrapper {
         }
 
         return arguments;
+    }
+
+    private List<String> engineFilterArguments(String filter) {
+        List<String> arguments = new ArrayList<>();
+
+        if (StringUtils.isNotBlank(filter)) {
+            arguments.add(CxConstants.ENGINE_NAME_FILTER);
+            arguments.add(filter);
+        }
+
+        return arguments;
+    }
+
+    public Engines listApi(String filter) throws IOException, InterruptedException, CxException {
+        this.logger.info("Fetching the api list using the filter: {}", filter);
+
+        List<String> arguments = new ArrayList<>();
+        arguments.add(CxConstants.CMD_ENGINES);
+        arguments.add(CxConstants.SUB_CMD_LIST_API);
+        arguments.addAll(engineFilterArguments(filter));
+        arguments.addAll(jsonArguments2());
+
+        return Execution.executeCommand(withConfigArguments(arguments), logger, Engines::fromLine);
     }
 }
