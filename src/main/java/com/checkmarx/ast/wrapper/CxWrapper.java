@@ -4,7 +4,10 @@ import com.checkmarx.ast.asca.ScanResult;
 import com.checkmarx.ast.codebashing.CodeBashing;
 import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
 import com.checkmarx.ast.learnMore.LearnMore;
-import com.checkmarx.ast.ossrealtime.OssRealtimeResults;
+import com.checkmarx.ast.ossRealtime.OssRealtimeResults;
+import com.checkmarx.ast.secretsRealtime.SecretsRealtimeResults;
+import com.checkmarx.ast.iacRealtime.IacRealtimeResults;
+import com.checkmarx.ast.containersRealtime.ContainersRealtimeResults;
 import com.checkmarx.ast.predicate.CustomState;
 import com.checkmarx.ast.predicate.Predicate;
 import com.checkmarx.ast.project.Project;
@@ -25,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -428,21 +430,21 @@ public class CxWrapper {
     }
 
     // IAC Realtime
-    public String iacRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+    public IacRealtimeResults iacRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return realtimeScan(CxConstants.SUB_CMD_IAC_REALTIME, sourcePath, ignoredFilePath, line -> line);
+        return realtimeScan(CxConstants.SUB_CMD_IAC_REALTIME, sourcePath, ignoredFilePath, IacRealtimeResults::fromLine);
     }
 
     // Secrets Realtime
-    public String secretsRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+    public SecretsRealtimeResults secretsRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return realtimeScan(CxConstants.SUB_CMD_SECRETS_REALTIME, sourcePath, ignoredFilePath, line -> line);
+        return realtimeScan(CxConstants.SUB_CMD_SECRETS_REALTIME, sourcePath, ignoredFilePath, SecretsRealtimeResults::fromLine);
     }
 
     // Containers Realtime
-    public String containersRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+    public ContainersRealtimeResults containersRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return realtimeScan(CxConstants.SUB_CMD_CONTAINERS_REALTIME, sourcePath, ignoredFilePath, line -> line);
+        return realtimeScan(CxConstants.SUB_CMD_CONTAINERS_REALTIME, sourcePath, ignoredFilePath, ContainersRealtimeResults::fromLine);
     }
 
     public KicsRemediation kicsRemediate(@NonNull String resultsFile, String kicsFile, String engine,String similarityIds)
