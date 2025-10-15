@@ -1,5 +1,6 @@
-package com.checkmarx.ast.ossrealtime;
+package com.checkmarx.ast.ossRealtime;
 
+import com.checkmarx.ast.realtime.RealtimeLocation;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -7,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Value;
 
+import java.util.Collections;
 import java.util.List;
 
 @Value
@@ -23,7 +25,7 @@ public class OssRealtimeScanPackage {
     @JsonProperty("FilePath")
     String filePath;
     @JsonProperty("Locations")
-    List<OssRealtimeLocation> locations;
+    List<RealtimeLocation> locations;
     @JsonProperty("Status")
     String status;
     @JsonProperty("Vulnerabilities")
@@ -34,16 +36,15 @@ public class OssRealtimeScanPackage {
                                   @JsonProperty("PackageName") String packageName,
                                   @JsonProperty("PackageVersion") String packageVersion,
                                   @JsonProperty("FilePath") String filePath,
-                                  @JsonProperty("Locations") List<OssRealtimeLocation> locations,
+                                  @JsonProperty("Locations") List<RealtimeLocation> locations,
                                   @JsonProperty("Status") String status,
                                   @JsonProperty("Vulnerabilities") List<OssRealtimeVulnerability> vulnerabilities) {
         this.packageManager = packageManager;
         this.packageName = packageName;
         this.packageVersion = packageVersion;
         this.filePath = filePath;
-        this.locations = locations;
+        this.locations = locations == null ? Collections.emptyList() : locations;
         this.status = status;
-        this.vulnerabilities = vulnerabilities;
+        this.vulnerabilities = vulnerabilities == null ? Collections.emptyList() : vulnerabilities;
     }
 }
-

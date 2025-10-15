@@ -1,4 +1,4 @@
-package com.checkmarx.ast.ossrealtime;
+package com.checkmarx.ast.ossRealtime;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OssRealtimeResults {
+    private static final Logger log = LoggerFactory.getLogger(OssRealtimeResults.class);
     @JsonProperty("Packages")
     List<OssRealtimeScanPackage> packages;
 
@@ -33,7 +36,8 @@ public class OssRealtimeResults {
             if (isValidJSON(line) && line.contains("\"Packages\"")) {
                 return new ObjectMapper().readValue(line, OssRealtimeResults.class);
             }
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            log.debug("Failed to parse oss realtime line: {}", line, e);
         }
         return null;
     }
@@ -47,4 +51,3 @@ public class OssRealtimeResults {
         }
     }
 }
-
