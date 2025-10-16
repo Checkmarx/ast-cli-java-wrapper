@@ -1,4 +1,4 @@
-package com.checkmarx.ast.secretsRealtime;
+package com.checkmarx.ast.iacrealtime;
 
 import com.checkmarx.ast.realtime.RealtimeLocation;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -20,48 +20,52 @@ import java.util.List;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SecretsRealtimeResults {
-    private static final Logger log = LoggerFactory.getLogger(SecretsRealtimeResults.class);
-
-    @JsonProperty("Secrets")
-    List<Secret> secrets; // Normalized list (array or single object from CLI)
+public class IacRealtimeResults {
+    private static final Logger log = LoggerFactory.getLogger(IacRealtimeResults.class);
+    @JsonProperty("Results") List<Issue> results; // Normalized list (array or single object)
 
     @JsonCreator
-    public SecretsRealtimeResults(@JsonProperty("Secrets") List<Secret> secrets) {
-        this.secrets = secrets == null ? Collections.emptyList() : secrets;
+    public IacRealtimeResults(@JsonProperty("Results") List<Issue> results) {
+        this.results = results == null ? Collections.emptyList() : results;
     }
 
     @Value
     @JsonDeserialize
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Secret {
+    public static class Issue {
         @JsonProperty("Title") String title;
         @JsonProperty("Description") String description;
-        @JsonProperty("SecretValue") String secretValue;
+        @JsonProperty("SimilarityID") String similarityId;
         @JsonProperty("FilePath") String filePath;
         @JsonProperty("Severity") String severity;
+        @JsonProperty("ExpectedValue") String expectedValue;
+        @JsonProperty("ActualValue") String actualValue;
         @JsonProperty("Locations") List<RealtimeLocation> locations;
 
         @JsonCreator
-        public Secret(@JsonProperty("Title") String title,
-                      @JsonProperty("Description") String description,
-                      @JsonProperty("SecretValue") String secretValue,
-                      @JsonProperty("FilePath") String filePath,
-                      @JsonProperty("Severity") String severity,
-                      @JsonProperty("Locations") List<RealtimeLocation> locations) {
+        public Issue(@JsonProperty("Title") String title,
+                     @JsonProperty("Description") String description,
+                     @JsonProperty("SimilarityID") String similarityId,
+                     @JsonProperty("FilePath") String filePath,
+                     @JsonProperty("Severity") String severity,
+                     @JsonProperty("ExpectedValue") String expectedValue,
+                     @JsonProperty("ActualValue") String actualValue,
+                     @JsonProperty("Locations") List<RealtimeLocation> locations) {
             this.title = title;
             this.description = description;
-            this.secretValue = secretValue;
+            this.similarityId = similarityId;
             this.filePath = filePath;
             this.severity = severity;
+            this.expectedValue = expectedValue;
+            this.actualValue = actualValue;
             this.locations = locations == null ? Collections.emptyList() : locations;
         }
     }
 
-    public static SecretsRealtimeResults fromLine(String line) {
+    public static IacRealtimeResults fromLine(String line) {
         if (StringUtils.isBlank(line)) {
-            return null; // skip blank
+            return null;
         }
         try {
             if (!isValidJSON(line)) {
@@ -69,17 +73,16 @@ public class SecretsRealtimeResults {
             }
             ObjectMapper mapper = new ObjectMapper();
             String trimmed = line.trim();
-            if (trimmed.startsWith("[")) { // array form
-                List<Secret> list = mapper.readValue(trimmed,
-                        mapper.getTypeFactory().constructCollectionType(List.class, Secret.class));
-                return new SecretsRealtimeResults(list);
+            if (trimmed.startsWith("[")) {
+                List<Issue> list = mapper.readValue(trimmed, mapper.getTypeFactory().constructCollectionType(List.class, Issue.class));
+                return new IacRealtimeResults(list == null ? Collections.emptyList() : list);
             }
-            if (trimmed.startsWith("{")) { // single object form
-                Secret single = mapper.readValue(trimmed, Secret.class);
-                return new SecretsRealtimeResults(Collections.singletonList(single));
+            if (trimmed.startsWith("{")) {
+                Issue single = mapper.readValue(trimmed, Issue.class);
+                return new IacRealtimeResults(Collections.singletonList(single));
             }
         } catch (IOException e) {
-            log.debug("Failed to parse secrets realtime JSON line: {}", line, e);
+            log.debug("Failed to parse iac realtime JSON line: {}", line, e);
         }
         return null;
     }

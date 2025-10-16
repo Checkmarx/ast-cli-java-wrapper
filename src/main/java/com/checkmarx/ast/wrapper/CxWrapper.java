@@ -4,10 +4,10 @@ import com.checkmarx.ast.asca.ScanResult;
 import com.checkmarx.ast.codebashing.CodeBashing;
 import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
 import com.checkmarx.ast.learnMore.LearnMore;
-import com.checkmarx.ast.ossRealtime.OssRealtimeResults;
-import com.checkmarx.ast.secretsRealtime.SecretsRealtimeResults;
-import com.checkmarx.ast.iacRealtime.IacRealtimeResults;
-import com.checkmarx.ast.containersRealtime.ContainersRealtimeResults;
+import com.checkmarx.ast.ossrealtime.OssRealtimeResults;
+import com.checkmarx.ast.secretsrealtime.SecretsRealtimeResults;
+import com.checkmarx.ast.iacrealtime.IacRealtimeResults;
+import com.checkmarx.ast.containersrealtime.ContainersRealtimeResults;
 import com.checkmarx.ast.predicate.CustomState;
 import com.checkmarx.ast.predicate.Predicate;
 import com.checkmarx.ast.project.Project;
@@ -399,7 +399,7 @@ public class CxWrapper {
         arguments.add(fileSources);
         arguments.add(CxConstants.ADDITONAL_PARAMS);
         arguments.add(additionalParams);
-        if (engine.length() > 0) {
+        if (!engine.isEmpty()) {
             arguments.add(CxConstants.ENGINE);
             arguments.add(engine);
         }
@@ -461,11 +461,11 @@ public class CxWrapper {
         arguments.add(resultsFile);
         arguments.add(CxConstants.KICS_REMEDIATION_KICS_FILE);
         arguments.add(kicsFile);
-        if (engine.length() > 0) {
+        if (!engine.isEmpty()) {
             arguments.add(CxConstants.ENGINE);
             arguments.add(engine);
         }
-        if (similarityIds.length() > 0) {
+        if (!similarityIds.isEmpty()) {
             arguments.add(CxConstants.KICS_REMEDIATION_SIMILARITY);
             arguments.add(similarityIds);
         }

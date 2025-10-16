@@ -1,4 +1,4 @@
-package com.checkmarx.ast.iacRealtime;
+package com.checkmarx.ast.secretsrealtime;
 
 import com.checkmarx.ast.realtime.RealtimeLocation;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -20,50 +20,45 @@ import java.util.List;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class IacRealtimeResults {
-    private static final Logger log = LoggerFactory.getLogger(IacRealtimeResults.class);
-    @JsonProperty("Results") List<Issue> results; // Normalized list (array or single object)
+public class SecretsRealtimeResults {
+    private static final Logger log = LoggerFactory.getLogger(SecretsRealtimeResults.class);
+
+    @JsonProperty("Secrets") List<Secret> secrets;
 
     @JsonCreator
-    public IacRealtimeResults(@JsonProperty("Results") List<Issue> results) {
-        this.results = results == null ? Collections.emptyList() : results;
+    public SecretsRealtimeResults(@JsonProperty("Secrets") List<Secret> secrets) {
+        this.secrets = secrets == null ? Collections.emptyList() : secrets;
     }
 
     @Value
     @JsonDeserialize
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Issue {
+    public static class Secret {
         @JsonProperty("Title") String title;
         @JsonProperty("Description") String description;
-        @JsonProperty("SimilarityID") String similarityId;
+        @JsonProperty("SecretValue") String secretValue;
         @JsonProperty("FilePath") String filePath;
         @JsonProperty("Severity") String severity;
-        @JsonProperty("ExpectedValue") String expectedValue;
-        @JsonProperty("ActualValue") String actualValue;
         @JsonProperty("Locations") List<RealtimeLocation> locations;
 
         @JsonCreator
-        public Issue(@JsonProperty("Title") String title,
-                     @JsonProperty("Description") String description,
-                     @JsonProperty("SimilarityID") String similarityId,
-                     @JsonProperty("FilePath") String filePath,
-                     @JsonProperty("Severity") String severity,
-                     @JsonProperty("ExpectedValue") String expectedValue,
-                     @JsonProperty("ActualValue") String actualValue,
-                     @JsonProperty("Locations") List<RealtimeLocation> locations) {
+        public Secret(@JsonProperty("Title") String title,
+                      @JsonProperty("Description") String description,
+                      @JsonProperty("SecretValue") String secretValue,
+                      @JsonProperty("FilePath") String filePath,
+                      @JsonProperty("Severity") String severity,
+                      @JsonProperty("Locations") List<RealtimeLocation> locations) {
             this.title = title;
             this.description = description;
-            this.similarityId = similarityId;
+            this.secretValue = secretValue;
             this.filePath = filePath;
             this.severity = severity;
-            this.expectedValue = expectedValue;
-            this.actualValue = actualValue;
             this.locations = locations == null ? Collections.emptyList() : locations;
         }
     }
 
-    public static IacRealtimeResults fromLine(String line) {
+    public static SecretsRealtimeResults fromLine(String line) {
         if (StringUtils.isBlank(line)) {
             return null;
         }
@@ -74,15 +69,15 @@ public class IacRealtimeResults {
             ObjectMapper mapper = new ObjectMapper();
             String trimmed = line.trim();
             if (trimmed.startsWith("[")) {
-                List<Issue> list = mapper.readValue(trimmed, mapper.getTypeFactory().constructCollectionType(List.class, Issue.class));
-                return new IacRealtimeResults(list == null ? Collections.emptyList() : list);
+                List<Secret> list = mapper.readValue(trimmed, mapper.getTypeFactory().constructCollectionType(List.class, Secret.class));
+                return new SecretsRealtimeResults(list);
             }
             if (trimmed.startsWith("{")) {
-                Issue single = mapper.readValue(trimmed, Issue.class);
-                return new IacRealtimeResults(Collections.singletonList(single));
+                Secret single = mapper.readValue(trimmed, Secret.class);
+                return new SecretsRealtimeResults(Collections.singletonList(single));
             }
         } catch (IOException e) {
-            log.debug("Failed to parse iac realtime JSON line: {}", line, e);
+            log.debug("Failed to parse secrets realtime JSON line: {}", line, e);
         }
         return null;
     }
@@ -96,3 +91,4 @@ public class IacRealtimeResults {
         }
     }
 }
+

@@ -1,4 +1,4 @@
-package com.checkmarx.ast.ossRealtime;
+package com.checkmarx.ast.ossrealtime;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 @Value
@@ -20,12 +21,12 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OssRealtimeResults {
     private static final Logger log = LoggerFactory.getLogger(OssRealtimeResults.class);
-    @JsonProperty("Packages")
-    List<OssRealtimeScanPackage> packages;
+
+    @JsonProperty("Packages") List<OssRealtimeScanPackage> packages;
 
     @JsonCreator
     public OssRealtimeResults(@JsonProperty("Packages") List<OssRealtimeScanPackage> packages) {
-        this.packages = packages;
+        this.packages = packages == null ? Collections.emptyList() : packages;
     }
 
     public static OssRealtimeResults fromLine(String line) {
@@ -51,3 +52,4 @@ public class OssRealtimeResults {
         }
     }
 }
+
