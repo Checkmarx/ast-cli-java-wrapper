@@ -1,4 +1,4 @@
-package com.checkmarx.ast.containersRealtime;
+package com.checkmarx.ast.containersrealtime;
 
 import com.checkmarx.ast.realtime.RealtimeLocation;
 import com.fasterxml.jackson.annotation.JsonCreator;

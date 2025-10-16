@@ -11,11 +11,17 @@ public class TenantTest extends BaseTest {
     @Test
     void testTenantSettings() throws Exception {
         List<TenantSetting> tenantSettings = wrapper.tenantSettings();
-        Assertions.assertTrue(tenantSettings.size() > 0);
+        Assertions.assertFalse(tenantSettings.isEmpty());
     }
 
     @Test
     void testIdeScansEnabled() {
         Assertions.assertDoesNotThrow(() -> wrapper.ideScansEnabled());
+    }
+
+    @Test
+    void testAiMcpServerEnabled() throws Exception {
+        boolean enabled = Assertions.assertDoesNotThrow(() -> wrapper.aiMcpServerEnabled());
+        Assertions.assertTrue(enabled, "AI MCP Server flag expected to be true");
     }
 }

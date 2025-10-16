@@ -1,4 +1,4 @@
-package com.checkmarx.ast.ossRealtime;
+package com.checkmarx.ast.ossrealtime;
 
 import com.checkmarx.ast.realtime.RealtimeLocation;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -16,20 +16,13 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OssRealtimeScanPackage {
-    @JsonProperty("PackageManager")
-    String packageManager;
-    @JsonProperty("PackageName")
-    String packageName;
-    @JsonProperty("PackageVersion")
-    String packageVersion;
-    @JsonProperty("FilePath")
-    String filePath;
-    @JsonProperty("Locations")
-    List<RealtimeLocation> locations;
-    @JsonProperty("Status")
-    String status;
-    @JsonProperty("Vulnerabilities")
-    List<OssRealtimeVulnerability> vulnerabilities;
+    @JsonProperty("PackageManager") String packageManager;
+    @JsonProperty("PackageName") String packageName;
+    @JsonProperty("PackageVersion") String packageVersion;
+    @JsonProperty("FilePath") String filePath;
+    @JsonProperty("Locations") List<RealtimeLocation> locations;
+    @JsonProperty("Status") String status;
+    @JsonProperty("Vulnerabilities") List<OssRealtimeVulnerability> vulnerabilities;
 
     @JsonCreator
     public OssRealtimeScanPackage(@JsonProperty("PackageManager") String packageManager,
@@ -48,3 +41,4 @@ public class OssRealtimeScanPackage {
         this.vulnerabilities = vulnerabilities == null ? Collections.emptyList() : vulnerabilities;
     }
 }
+
