@@ -1,1 +1,5 @@
-[{"name": "marked", "version": "*"}]
+[
+  {"name": "jackson-databind", "version": "*"},
+  {"name": "commons-lang3", "version": "*"},
+  {"name": "json-simple", "version": "*"}
+]
