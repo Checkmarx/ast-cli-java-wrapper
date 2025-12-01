@@ -57,7 +57,7 @@ public final class Execution {
             String line;
             StringBuilder output = new StringBuilder();
             while ((line = br.readLine()) != null) {
-                logger.info(line);
+                logger.debug(line);
                 output.append(line).append(LINE_SEPARATOR);
                 T parsedLine = lineParser.apply(line);
                 if (parsedLine != null) {
@@ -98,7 +98,7 @@ public final class Execution {
             String line;
             StringBuilder stringBuilder = new StringBuilder();
             while ((line = br.readLine()) != null) {
-                logger.info(line);
+                logger.debug(line);
                 stringBuilder.append(line).append(LINE_SEPARATOR);
             }
             process.waitFor();

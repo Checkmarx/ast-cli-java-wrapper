@@ -6,6 +6,7 @@ import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
 import com.checkmarx.ast.learnMore.LearnMore;
 import com.checkmarx.ast.ossrealtime.OssRealtimeResults;
 import com.checkmarx.ast.secretsrealtime.SecretsRealtimeResults;
+import com.checkmarx.ast.secretsrealtime.MaskResult;
 import com.checkmarx.ast.iacrealtime.IacRealtimeResults;
 import com.checkmarx.ast.containersrealtime.ContainersRealtimeResults;
 import com.checkmarx.ast.predicate.CustomState;
@@ -439,6 +440,23 @@ public class CxWrapper {
     public SecretsRealtimeResults secretsRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
         return realtimeScan(CxConstants.SUB_CMD_SECRETS_REALTIME, sourcePath, ignoredFilePath, SecretsRealtimeResults::fromLine);
+    }
+
+    /**
+     * Executes mask secrets command to obfuscate/redact secrets in a file
+     * @param filePath path to the file to mask
+     * @return MaskResult containing masked secrets and masked file content
+     */
+    public MaskResult maskSecrets(@NonNull String filePath) throws IOException, InterruptedException, CxException {
+        this.logger.info("Executing 'mask' command using the CLI for file: {}", filePath);
+
+        List<String> arguments = new ArrayList<>();
+        arguments.add(CxConstants.CMD_MASK_SECRETS);
+        arguments.add(CxConstants.SOURCE);
+        arguments.add(filePath);
+
+        String output = Execution.executeCommand(withConfigArguments(arguments), logger, line -> line);
+        return MaskResult.fromJsonString(output);
     }
 
     // Containers Realtime
