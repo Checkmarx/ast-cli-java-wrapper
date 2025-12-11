@@ -3,7 +3,9 @@ package com.checkmarx.ast;
 import com.checkmarx.ast.asca.ScanDetail;
 import com.checkmarx.ast.asca.ScanResult;
 import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
+import com.checkmarx.ast.ossrealtime.OssRealtimeResults;
 import com.checkmarx.ast.scan.Scan;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -90,6 +92,19 @@ class ScanTest extends BaseTest {
     void testKicsRealtimeScan() throws Exception {
         KicsRealtimeResults scan = wrapper.kicsRealtimeScan("target/test-classes/Dockerfile","","v");
         Assertions.assertTrue(scan.getResults().size() >= 1);
+    }
+
+    @Test
+    void testOssRealtimeScanWithIgnoredFile() throws Exception {
+        Assumptions.assumeTrue(getConfig().getPathToExecutable() != null && !getConfig().getPathToExecutable().isEmpty(), "PATH_TO_EXECUTABLE not set");
+
+        String source = "pom.xml";
+        String ignoreFile = "src/test/resources/ignored-packages.json";
+
+        OssRealtimeResults results = wrapper.ossRealtimeScan(source, ignoreFile);
+
+        Assertions.assertNotNull(results);
+        Assertions.assertNotNull(results.getPackages());
     }
 
 }
