@@ -4,6 +4,7 @@ import com.checkmarx.ast.asca.ScanResult;
 import com.checkmarx.ast.codebashing.CodeBashing;
 import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
 import com.checkmarx.ast.learnMore.LearnMore;
+import com.checkmarx.ast.mask.MaskResult;
 import com.checkmarx.ast.ossrealtime.OssRealtimeResults;
 import com.checkmarx.ast.secretsrealtime.SecretsRealtimeResults;
 
@@ -520,6 +521,17 @@ public class CxWrapper {
         arguments.add(CxConstants.SUB_CMD_TENANT);
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, TenantSetting::listFromLine);
+    }
+
+    public MaskResult maskSecrets(@NonNull String filePath) throws CxException, IOException, InterruptedException {
+        List<String> arguments = new ArrayList<>();
+
+        arguments.add(CxConstants.CMD_UTILS);
+        arguments.add(CxConstants.SUB_CMD_MASK);
+        arguments.add(CxConstants.RESULT_FILE);
+        arguments.add(filePath);
+
+        return Execution.executeCommand(withConfigArguments(arguments), logger, MaskResult::fromLine);
     }
 
     private int getIndexOfBfLNode(List<Node> bflNodes, List<Node> resultNodes) {
