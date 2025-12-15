@@ -4,6 +4,12 @@ import com.checkmarx.ast.asca.ScanResult;
 import com.checkmarx.ast.codebashing.CodeBashing;
 import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
 import com.checkmarx.ast.learnMore.LearnMore;
+import com.checkmarx.ast.mask.MaskResult;
+import com.checkmarx.ast.ossrealtime.OssRealtimeResults;
+import com.checkmarx.ast.secretsrealtime.SecretsRealtimeResults;
+
+import com.checkmarx.ast.iacrealtime.IacRealtimeResults;
+import com.checkmarx.ast.containersrealtime.ContainersRealtimeResults;
 import com.checkmarx.ast.predicate.CustomState;
 import com.checkmarx.ast.predicate.Predicate;
 import com.checkmarx.ast.project.Project;
@@ -24,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -396,12 +401,54 @@ public class CxWrapper {
         arguments.add(fileSources);
         arguments.add(CxConstants.ADDITONAL_PARAMS);
         arguments.add(additionalParams);
-        if (engine.length() > 0) {
+        if (!engine.isEmpty()) {
             arguments.add(CxConstants.ENGINE);
             arguments.add(engine);
         }
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, KicsRealtimeResults::fromLine);
+    }
+
+    public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
+            throws IOException, InterruptedException, CxException {
+        this.logger.info("Executing 'scan {}' command using the CLI.", subCommand);
+        this.logger.info("Source: {} IgnoredFilePath: {}", sourcePath, ignoredFilePath);
+        List<String> arguments = new ArrayList<>();
+        arguments.add(CxConstants.CMD_SCAN);
+        arguments.add(subCommand);
+        arguments.add(CxConstants.SOURCE);
+        arguments.add(sourcePath);
+        if (StringUtils.isNotBlank(ignoredFilePath)) {
+            arguments.add(CxConstants.IGNORED_FILE_PATH);
+            arguments.add(ignoredFilePath);
+        }
+        return Execution.executeCommand(withConfigArguments(arguments), logger, resultParser);
+    }
+
+    // OSS Realtime
+    public OssRealtimeResults ossRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+            throws IOException, InterruptedException, CxException {
+        return realtimeScan(CxConstants.SUB_CMD_OSS_REALTIME, sourcePath, ignoredFilePath, OssRealtimeResults::fromLine);
+    }
+
+    // IAC Realtime
+    public IacRealtimeResults iacRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+            throws IOException, InterruptedException, CxException {
+        return realtimeScan(CxConstants.SUB_CMD_IAC_REALTIME, sourcePath, ignoredFilePath, IacRealtimeResults::fromLine);
+    }
+
+    // Secrets Realtime
+    public SecretsRealtimeResults secretsRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+            throws IOException, InterruptedException, CxException {
+        return realtimeScan(CxConstants.SUB_CMD_SECRETS_REALTIME, sourcePath, ignoredFilePath, SecretsRealtimeResults::fromLine);
+    }
+
+
+
+    // Containers Realtime
+    public ContainersRealtimeResults containersRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+            throws IOException, InterruptedException, CxException {
+        return realtimeScan(CxConstants.SUB_CMD_CONTAINERS_REALTIME, sourcePath, ignoredFilePath, ContainersRealtimeResults::fromLine);
     }
 
     public KicsRemediation kicsRemediate(@NonNull String resultsFile, String kicsFile, String engine,String similarityIds)
@@ -418,11 +465,11 @@ public class CxWrapper {
         arguments.add(resultsFile);
         arguments.add(CxConstants.KICS_REMEDIATION_KICS_FILE);
         arguments.add(kicsFile);
-        if (engine.length() > 0) {
+        if (!engine.isEmpty()) {
             arguments.add(CxConstants.ENGINE);
             arguments.add(engine);
         }
-        if (similarityIds.length() > 0) {
+        if (!similarityIds.isEmpty()) {
             arguments.add(CxConstants.KICS_REMEDIATION_SIMILARITY);
             arguments.add(similarityIds);
         }
@@ -455,6 +502,18 @@ public class CxWrapper {
                              .orElse(false);
     }
 
+    public boolean aiMcpServerEnabled() throws CxException, IOException, InterruptedException {
+        List<TenantSetting> tenantSettings = tenantSettings();
+        if (tenantSettings == null) {
+            throw new CxException(1, "Unable to parse tenant settings");
+        }
+        return tenantSettings.stream()
+                .filter(t -> t.getKey().equals(CxConstants.AI_MCP_SERVER_KEY))
+                .findFirst()
+                .map(t -> Boolean.parseBoolean(t.getValue()))
+                .orElse(false);
+    }
+
     public List<TenantSetting> tenantSettings() throws CxException, IOException, InterruptedException {
         List<String> arguments = jsonArguments();
 
@@ -462,6 +521,17 @@ public class CxWrapper {
         arguments.add(CxConstants.SUB_CMD_TENANT);
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, TenantSetting::listFromLine);
+    }
+
+    public MaskResult maskSecrets(@NonNull String filePath) throws CxException, IOException, InterruptedException {
+        List<String> arguments = new ArrayList<>();
+
+        arguments.add(CxConstants.CMD_UTILS);
+        arguments.add(CxConstants.SUB_CMD_MASK);
+        arguments.add(CxConstants.RESULT_FILE);
+        arguments.add(filePath);
+
+        return Execution.executeCommand(withConfigArguments(arguments), logger, MaskResult::fromLine);
     }
 
     private int getIndexOfBfLNode(List<Node> bflNodes, List<Node> resultNodes) {
