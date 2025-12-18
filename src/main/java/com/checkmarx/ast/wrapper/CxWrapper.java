@@ -407,7 +407,7 @@ public class CxWrapper {
         return Execution.executeCommand(withConfigArguments(arguments), logger, KicsRealtimeResults::fromLine);
     }
 
-    public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
+    public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String containerTool, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
             throws IOException, InterruptedException, CxException {
         this.logger.info("Executing 'scan {}' command using the CLI.", subCommand);
         this.logger.info("Source: {} IgnoredFilePath: {}", sourcePath, ignoredFilePath);
@@ -416,6 +416,10 @@ public class CxWrapper {
         arguments.add(subCommand);
         arguments.add(CxConstants.SOURCE);
         arguments.add(sourcePath);
+        if(StringUtils.isNotBlank(containerTool)){
+            arguments.add(CxConstants.ENGINE);
+            arguments.add(containerTool);
+        }
         if (StringUtils.isNotBlank(ignoredFilePath)) {
             arguments.add(CxConstants.IGNORED_FILE_PATH);
             arguments.add(ignoredFilePath);
@@ -426,25 +430,26 @@ public class CxWrapper {
     // OSS Realtime
     public OssRealtimeResults ossRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return realtimeScan(CxConstants.SUB_CMD_OSS_REALTIME, sourcePath, ignoredFilePath, OssRealtimeResults::fromLine);
+        return realtimeScan(CxConstants.SUB_CMD_OSS_REALTIME, sourcePath,"", ignoredFilePath, OssRealtimeResults::fromLine);
     }
 
     // IAC Realtime
-    public IacRealtimeResults iacRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+    public IacRealtimeResults iacRealtimeScan(@NonNull String sourcePath,String containerTool, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return realtimeScan(CxConstants.SUB_CMD_IAC_REALTIME, sourcePath, ignoredFilePath, IacRealtimeResults::fromLine);
+        return realtimeScan(CxConstants.SUB_CMD_IAC_REALTIME, sourcePath,containerTool, ignoredFilePath, IacRealtimeResults::fromLine);
     }
+
 
     // Secrets Realtime
     public SecretsRealtimeResults secretsRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return realtimeScan(CxConstants.SUB_CMD_SECRETS_REALTIME, sourcePath, ignoredFilePath, SecretsRealtimeResults::fromLine);
+        return realtimeScan(CxConstants.SUB_CMD_SECRETS_REALTIME, sourcePath,"", ignoredFilePath, SecretsRealtimeResults::fromLine);
     }
 
     // Containers Realtime
     public ContainersRealtimeResults containersRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return realtimeScan(CxConstants.SUB_CMD_CONTAINERS_REALTIME, sourcePath, ignoredFilePath, ContainersRealtimeResults::fromLine);
+        return realtimeScan(CxConstants.SUB_CMD_CONTAINERS_REALTIME, sourcePath, "",ignoredFilePath, ContainersRealtimeResults::fromLine);
     }
 
     public KicsRemediation kicsRemediate(@NonNull String resultsFile, String kicsFile, String engine,String similarityIds)
