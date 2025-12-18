@@ -80,4 +80,6 @@ public final class CxConstants {
     static final String SUB_CMD_IAC_REALTIME = "iac-realtime";
     static final String SUB_CMD_SECRETS_REALTIME = "secrets-realtime";
     static final String SUB_CMD_CONTAINERS_REALTIME = "containers-realtime";
+    static final String SUB_CMD_MASK = "mask";
+    static final String RESULT_FILE = "--result-file";
 }
