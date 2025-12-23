@@ -537,6 +537,54 @@ public class CxWrapper {
         return Execution.executeCommand(withConfigArguments(arguments), logger, MaskResult::fromLine);
     }
 
+    /**
+     * Executes telemetry AI command to collect telemetry data for user interactions related to AI features.
+     *
+     * @param aiProvider AI provider name (e.g., "Cursor")
+     * @param agent Agent name
+     * @param eventType Event type (e.g., "click")
+     * @param subType Event subtype (e.g., "ast-results.viewPackageDetails")
+     * @param engine Engine type (e.g., "secrets")
+     * @param problemSeverity Severity level (e.g., "high")
+     * @param scanType Type of scan
+     * @param status Status information
+     * @param totalCount Number count
+     * @return Command output as string
+     * @throws IOException if I/O error occurs
+     * @throws InterruptedException if command execution is interrupted
+     * @throws CxException if CLI command fails
+     */
+    public String telemetryAIEvent(String aiProvider, String agent, String eventType, String subType,
+                                  String engine, String problemSeverity, String scanType, String status,
+                                  Integer totalCount) throws IOException, InterruptedException, CxException {
+        this.logger.info("Executing telemetry AI event with provider: {}, type: {}, subType: {}",
+                         aiProvider, eventType, subType);
+
+        List<String> arguments = new ArrayList<>();
+        arguments.add(CxConstants.CMD_TELEMETRY);
+        arguments.add(CxConstants.SUB_CMD_TELEMETRY_AI);
+        arguments.add(CxConstants.AI_PROVIDER);
+        arguments.add(aiProvider);
+        arguments.add(CxConstants.AGENT);
+        arguments.add(agent);
+        arguments.add(CxConstants.TYPE);
+        arguments.add(eventType);
+        arguments.add(CxConstants.SUB_TYPE);
+        arguments.add(subType);
+        arguments.add(CxConstants.ENGINE);
+        arguments.add(engine);
+        arguments.add(CxConstants.PROBLEM_SEVERITY);
+        arguments.add(problemSeverity);
+        arguments.add(CxConstants.SCAN_TYPE_FLAG);
+        arguments.add(scanType);
+        arguments.add(CxConstants.STATUS);
+        arguments.add(status);
+        arguments.add(CxConstants.TOTAL_COUNT);
+        arguments.add(totalCount.toString());
+
+        return Execution.executeCommand(withConfigArguments(arguments), logger, line -> line);
+    }
+
     private int getIndexOfBfLNode(List<Node> bflNodes, List<Node> resultNodes) {
 
         int bflNodeNotFound = -1;

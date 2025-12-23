@@ -82,4 +82,13 @@ public final class CxConstants {
     static final String SUB_CMD_CONTAINERS_REALTIME = "containers-realtime";
     static final String SUB_CMD_MASK = "mask";
     static final String RESULT_FILE = "--result-file";
+    static final String CMD_TELEMETRY = "telemetry";
+    static final String SUB_CMD_TELEMETRY_AI = "ai";
+    static final String AI_PROVIDER = "--ai-provider";
+    static final String TYPE = "--type";
+    static final String SUB_TYPE = "--sub-type";
+    static final String PROBLEM_SEVERITY = "--problem-severity";
+    static final String SCAN_TYPE_FLAG = "--scan-type";
+    static final String STATUS = "--status";
+    static final String TOTAL_COUNT = "--total-count";
 }
