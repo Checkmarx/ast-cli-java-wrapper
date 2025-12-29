@@ -409,7 +409,7 @@ public class CxWrapper {
         return Execution.executeCommand(withConfigArguments(arguments), logger, KicsRealtimeResults::fromLine);
     }
 
-    public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
+    public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String containerTool, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
             throws IOException, InterruptedException, CxException {
         this.logger.info("Executing 'scan {}' command using the CLI.", subCommand);
         this.logger.info("Source: {} IgnoredFilePath: {}", sourcePath, ignoredFilePath);
@@ -418,6 +418,10 @@ public class CxWrapper {
         arguments.add(subCommand);
         arguments.add(CxConstants.SOURCE);
         arguments.add(sourcePath);
+        if(StringUtils.isNotBlank(containerTool)){
+            arguments.add(CxConstants.ENGINE);
+            arguments.add(containerTool);
+        }
         if (StringUtils.isNotBlank(ignoredFilePath)) {
             arguments.add(CxConstants.IGNORED_FILE_PATH);
             arguments.add(ignoredFilePath);
@@ -428,27 +432,26 @@ public class CxWrapper {
     // OSS Realtime
     public OssRealtimeResults ossRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return realtimeScan(CxConstants.SUB_CMD_OSS_REALTIME, sourcePath, ignoredFilePath, OssRealtimeResults::fromLine);
+        return realtimeScan(CxConstants.SUB_CMD_OSS_REALTIME, sourcePath,"", ignoredFilePath, OssRealtimeResults::fromLine);
     }
 
     // IAC Realtime
-    public IacRealtimeResults iacRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
+    public IacRealtimeResults iacRealtimeScan(@NonNull String sourcePath,String containerTool, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return realtimeScan(CxConstants.SUB_CMD_IAC_REALTIME, sourcePath, ignoredFilePath, IacRealtimeResults::fromLine);
+        return realtimeScan(CxConstants.SUB_CMD_IAC_REALTIME, sourcePath,containerTool, ignoredFilePath, IacRealtimeResults::fromLine);
     }
+
 
     // Secrets Realtime
     public SecretsRealtimeResults secretsRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return realtimeScan(CxConstants.SUB_CMD_SECRETS_REALTIME, sourcePath, ignoredFilePath, SecretsRealtimeResults::fromLine);
+        return realtimeScan(CxConstants.SUB_CMD_SECRETS_REALTIME, sourcePath,"", ignoredFilePath, SecretsRealtimeResults::fromLine);
     }
-
-
 
     // Containers Realtime
     public ContainersRealtimeResults containersRealtimeScan(@NonNull String sourcePath, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
-        return realtimeScan(CxConstants.SUB_CMD_CONTAINERS_REALTIME, sourcePath, ignoredFilePath, ContainersRealtimeResults::fromLine);
+        return realtimeScan(CxConstants.SUB_CMD_CONTAINERS_REALTIME, sourcePath, "",ignoredFilePath, ContainersRealtimeResults::fromLine);
     }
 
     public KicsRemediation kicsRemediate(@NonNull String resultsFile, String kicsFile, String engine,String similarityIds)
@@ -532,6 +535,54 @@ public class CxWrapper {
         arguments.add(filePath);
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, MaskResult::fromLine);
+    }
+
+    /**
+     * Executes telemetry AI command to collect telemetry data for user interactions related to AI features.
+     *
+     * @param aiProvider AI provider name (e.g., "Copilot")
+     * @param agent Agent name (e.g., "Jetbrains")
+     * @param eventType Event type (e.g., "click")
+     * @param subType Event subtype (e.g., "ast-results.viewPackageDetails")
+     * @param engine Engine type (e.g., "secrets")
+     * @param problemSeverity Severity level (e.g., "high")
+     * @param scanType Type of scan
+     * @param status Status information
+     * @param totalCount Number count
+     * @return Command output as string
+     * @throws IOException if I/O error occurs
+     * @throws InterruptedException if command execution is interrupted
+     * @throws CxException if CLI command fails
+     */
+    public String telemetryAIEvent(String aiProvider, String agent, String eventType, String subType,
+                                  String engine, String problemSeverity, String scanType, String status,
+                                  Integer totalCount) throws IOException, InterruptedException, CxException {
+        this.logger.info("Executing telemetry AI event with provider: {}, type: {}, subType: {}",
+                         aiProvider, eventType, subType);
+
+        List<String> arguments = new ArrayList<>();
+        arguments.add(CxConstants.CMD_TELEMETRY);
+        arguments.add(CxConstants.SUB_CMD_TELEMETRY_AI);
+        arguments.add(CxConstants.AI_PROVIDER);
+        arguments.add(aiProvider);
+        arguments.add(CxConstants.AGENT);
+        arguments.add(agent);
+        arguments.add(CxConstants.TYPE);
+        arguments.add(eventType);
+        arguments.add(CxConstants.SUB_TYPE);
+        arguments.add(subType);
+        arguments.add(CxConstants.ENGINE);
+        arguments.add(engine);
+        arguments.add(CxConstants.PROBLEM_SEVERITY);
+        arguments.add(problemSeverity);
+        arguments.add(CxConstants.SCAN_TYPE_FLAG);
+        arguments.add(scanType);
+        arguments.add(CxConstants.STATUS);
+        arguments.add(status);
+        arguments.add(CxConstants.TOTAL_COUNT);
+        arguments.add(totalCount.toString());
+
+        return Execution.executeCommand(withConfigArguments(arguments), logger, line -> line);
     }
 
     private int getIndexOfBfLNode(List<Node> bflNodes, List<Node> resultNodes) {
