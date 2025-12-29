@@ -248,7 +248,7 @@ public class CxWrapper {
         return Execution.executeCommand(withConfigArguments(arguments), logger, Project::listFromLine);
     }
 
-    public ScanResult ScanAsca(String fileSource, boolean ascaLatestVersion, String agent, String ignoredFilePath) throws IOException, InterruptedException, CxException {
+    public ScanResult ScanAsca(String fileSource, boolean ascaLatestVersion, String agent) throws IOException, InterruptedException, CxException {
         this.logger.info("Fetching ASCA scanResult");
 
         List<String> arguments = new ArrayList<>();
@@ -258,10 +258,6 @@ public class CxWrapper {
         arguments.add(fileSource);
         if (ascaLatestVersion) {
             arguments.add(CxConstants.ASCA_LATEST_VERSION);
-        }
-        if (StringUtils.isNotBlank(ignoredFilePath)) {
-            arguments.add(CxConstants.IGNORED_FILE_PATH);
-            arguments.add(ignoredFilePath);
         }
 
         appendAgentToArguments(agent, arguments);
