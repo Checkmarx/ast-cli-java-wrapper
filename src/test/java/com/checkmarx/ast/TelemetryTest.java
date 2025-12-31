@@ -16,10 +16,10 @@ class TelemetryTest extends BaseTest {
         // Test case: AI logging with specific parameters and some empty values
         Assertions.assertDoesNotThrow(() -> {
             String result = wrapper.telemetryAIEvent(
-                    "Cursor",                                   // aiProvider
-                    "Cursos",                                   // agent
+                    "Copilot",                         // aiProvider
+                    "JetBrains IntelliJ IDEA",                  // agent
                     "click",                                    // eventType
-                    "ast-results.viewPackageDetails",          // subType
+                    "viewDetails",                              // subType
                     "secrets",                                  // engine
                     "high",                                     // problemSeverity
                     "",                                         // scanType (empty)
@@ -34,7 +34,7 @@ class TelemetryTest extends BaseTest {
         // Test case: Detection logging with most parameters empty and specific scan data
         Assertions.assertDoesNotThrow(() -> {
             String result = wrapper.telemetryAIEvent(
-                    "",                                         // aiProvider (empty)
+                    "",                                // aiProvider (empty)
                     "",                                         // agent (empty)
                     "",                                         // eventType (empty)
                     "",                                         // subType (empty)
@@ -52,7 +52,7 @@ class TelemetryTest extends BaseTest {
         // Test case: Edge case with minimal required parameters
         Assertions.assertDoesNotThrow(() -> {
             String result = wrapper.telemetryAIEvent(
-                    "test-provider",                            // aiProvider (minimal value)
+                    "test-provider",                   // aiProvider (minimal value)
                     "java-wrapper",                             // agent (minimal value)
                     "",                                         // eventType (empty)
                     "",                                         // subType (empty)
