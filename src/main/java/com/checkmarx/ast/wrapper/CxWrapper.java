@@ -435,9 +435,21 @@ public class CxWrapper {
         return realtimeScan(CxConstants.SUB_CMD_OSS_REALTIME, sourcePath,"", ignoredFilePath, OssRealtimeResults::fromLine);
     }
 
+
+    private static boolean isDockerAvailable() {
+        try {
+            Process p = buildProcess(List.of("docker", "--version"));
+            return p.waitFor() == 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     // IAC Realtime
     public IacRealtimeResults iacRealtimeScan(@NonNull String sourcePath,String containerTool, String ignoredFilePath)
             throws IOException, InterruptedException, CxException {
+        boolean dockerAvailable = isDockerAvailable();
+        System.out.println("Docker available?-----> " + dockerAvailable);
         return realtimeScan(CxConstants.SUB_CMD_IAC_REALTIME, sourcePath,containerTool, ignoredFilePath, IacRealtimeResults::fromLine);
     }
 
