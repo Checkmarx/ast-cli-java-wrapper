@@ -75,6 +75,8 @@ public final class CxConstants {
     static final String SUB_CMD_TENANT = "tenant";
     static final String IDE_SCANS_KEY = "scan.config.plugins.ideScans";
     static final String AI_MCP_SERVER_KEY = "scan.config.plugins.aiMcpServer";
+    static final String DEV_ASSIST_LICENSE_KEY = "scan.config.plugins.cxdevassist";
+    static final String ONE_ASSIST_LICENSE_KEY = "scan.config.plugins.cxoneassist";
     static final String IGNORED_FILE_PATH = "--ignored-file-path";
     static final String SUB_CMD_OSS_REALTIME = "oss-realtime";
     static final String SUB_CMD_IAC_REALTIME = "iac-realtime";

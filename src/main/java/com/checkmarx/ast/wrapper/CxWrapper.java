@@ -530,6 +530,28 @@ public class CxWrapper {
         return Execution.executeCommand(withConfigArguments(arguments), logger, TenantSetting::listFromLine);
     }
 
+
+
+    public boolean getTenantSetting(String key) throws CxException, IOException, InterruptedException {
+        List<TenantSetting> tenantSettings = tenantSettings();
+        if (tenantSettings == null) {
+            throw new CxException(1, "Unable to parse tenant settings");
+        }
+        return tenantSettings.stream()
+                .filter(t -> t.getKey().equals(key))
+                .findFirst()
+                .map(t -> Boolean.parseBoolean(t.getValue()))
+                .orElse(false);
+    }
+    public boolean devAssistEnabled() throws CxException, IOException, InterruptedException {
+        return getTenantSetting(CxConstants.DEV_ASSIST_LICENSE_KEY);
+
+    }
+
+    public boolean oneAssistEnabled() throws CxException, IOException, InterruptedException {
+        return getTenantSetting(CxConstants.ONE_ASSIST_LICENSE_KEY);
+    }
+
     public MaskResult maskSecrets(@NonNull String filePath) throws CxException, IOException, InterruptedException {
         List<String> arguments = new ArrayList<>();
 
