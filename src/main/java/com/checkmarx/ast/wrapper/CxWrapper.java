@@ -31,15 +31,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+
+import static com.checkmarx.ast.wrapper.Execution.*;
 
 public class CxWrapper {
 
     private static final CollectionType BRANCHES_TYPE = TypeFactory.defaultInstance()
             .constructCollectionType(List.class, String.class);
+    private static final String OS_LINUX = "linux";
+    private static final String OS_WINDOWS = "windows";
+    private static final String OS_MAC = "mac";
 
     @NonNull
     private final CxConfig cxConfig;
@@ -407,6 +409,30 @@ public class CxWrapper {
         }
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, KicsRealtimeResults::fromLine);
+    }
+
+    public String checkEngineExist(@NonNull String engineName) throws CxException, IOException, InterruptedException {
+             String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+             String osType=Execution.getOperatingSystemType(osName);
+                return this.checkEngine(engineName,osType);
+    }
+
+    private  String checkEngine(String engineName, String osType ) throws CxException, IOException, InterruptedException {
+        List<String> arguments = new ArrayList<>();
+        switch (osType){
+            case OS_LINUX:
+            case OS_MAC:
+                arguments.add("/bin/sh");
+                arguments.add("-c");
+                arguments.add("which " + engineName);
+                break;
+            case OS_WINDOWS:
+                arguments.add(engineName);
+                arguments.add("--version");
+                break;
+
+        }
+        return Execution.executeCommand((arguments), logger, line->line);
     }
 
     public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String containerTool, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
