@@ -420,19 +420,40 @@ public class CxWrapper {
     private  String checkEngine(String engineName, String osType ) throws CxException, IOException, InterruptedException {
         List<String> arguments = new ArrayList<>();
         switch (osType){
-            case OS_LINUX:
             case OS_MAC:
+                String enginePath;
                 arguments.add("/bin/sh");
                 arguments.add("-c");
-                arguments.add("which " + engineName);
-                break;
+                arguments.add("command -v " + engineName);
+                try{
+                    enginePath= Execution.executeCommand((arguments), logger, line->line);
+                }
+                catch (CxException e){
+                    throw new CxException(1,"Engine "+engineName+" is not installed on the system");
+                }
+
+                if(!enginePath.startsWith("/usr/local/bin/")){
+                    throw new CxException(1, engineName+ " was found at: " + enginePath + "\n" +
+                            "Please create a symlink at /usr/local/bin/docker:\n\n" +
+                            "sudo ln -s " + enginePath + " /usr/local/bin/"+engineName +"\n");
+                }
+                return enginePath;
             case OS_WINDOWS:
+            case OS_LINUX:
                 arguments.add(engineName);
                 arguments.add("--version");
-                break;
-
+                try {
+                    Execution.executeCommand(arguments, logger, line -> line);
+                    return engineName; // docker is available via PATH
+                } catch (CxException | IOException e) {
+                    throw new CxException(
+                            1,engineName+" is not installed or is not accessible from the system PATH."
+                    );
+                }
+            default:
+                throw new IllegalArgumentException("Unsupported OS: " + osType);
         }
-        return Execution.executeCommand((arguments), logger, line->line);
+
     }
 
     public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String containerTool, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
