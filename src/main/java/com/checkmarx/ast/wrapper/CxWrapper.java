@@ -428,9 +428,11 @@ public class CxWrapper {
                 try{
                     enginePath= Execution.executeCommand((arguments), logger, line->line);
                 }
-                catch (CxException e){
-                    throw new CxException(1,"Engine "+engineName+" is not installed on the system or not set at location /usr/local/bin");
-                }
+                throw new CxException(
+                        1,
+                        "Engine '" + engineName + "' is not installed or not found at /usr/local/bin)."
+                );
+
 
                 return enginePath;
             case OS_WINDOWS:
