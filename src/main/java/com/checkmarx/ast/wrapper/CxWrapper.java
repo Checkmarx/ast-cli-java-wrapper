@@ -411,7 +411,7 @@ public class CxWrapper {
         return Execution.executeCommand(withConfigArguments(arguments), logger, KicsRealtimeResults::fromLine);
     }
 
-    public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String containerTool, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
+    // public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String containerTool, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
     public String checkEngineExist(@NonNull String engineName) throws CxException, IOException, InterruptedException {
              String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
              String osType=Execution.getOperatingSystemType(osName);
@@ -428,13 +428,12 @@ public class CxWrapper {
                 arguments.add("command -v " + engineName);
                 try{
                     enginePath= Execution.executeCommand((arguments), logger, line->line);
-                }
+                } catch (CxException | IOException e) {
                 throw new CxException(
                         1,
                         "Engine '" + engineName + "' is not installed or not found at /usr/local/bin)."
                 );
-
-
+                }
                 return enginePath;
             case OS_WINDOWS:
             case OS_LINUX:
