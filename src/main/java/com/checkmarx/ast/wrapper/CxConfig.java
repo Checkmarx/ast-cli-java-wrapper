@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public class CxConfig {
 
     private static final Pattern pattern = Pattern.compile("([^\"]\\S*|\".+?\")\\s*");
-
+    private String agentName;    //JETBRAINS 
     private String baseUri;
     private String baseAuthUri;
     private String tenant;
@@ -66,6 +66,10 @@ public class CxConfig {
             commands.add(CxConstants.BASE_AUTH_URI);
             commands.add(getBaseAuthUri());
         }
+        if (getAgentName() != null && !getAgentName().isEmpty()) {
+            commands.add("--agent");
+            commands.add(getAgentName()); 
+        }        
         if (getAdditionalParameters() != null)
             commands.addAll(getAdditionalParameters());
 

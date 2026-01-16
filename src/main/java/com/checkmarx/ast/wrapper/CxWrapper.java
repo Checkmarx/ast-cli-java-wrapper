@@ -264,22 +264,22 @@ public class CxWrapper {
             arguments.add(ignoredFilePath);
         }
 
-        appendAgentToArguments(agent, arguments);
+
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, ScanResult::fromLine,
                 (args, ignored) ->
                         (args.size() >= 3 && args.get(1).equals(CxConstants.CMD_SCAN) && args.get(2).equals(CxConstants.SUB_CMD_ASCA)));
     }
 
-    private static void appendAgentToArguments(String agent, List<String> arguments) {
-        arguments.add(CxConstants.AGENT);
-        if (agent != null && !agent.isEmpty()){
-            arguments.add(agent);
-        }
-        else{
-            arguments.add("CLI-Java-Wrapper");
-        }
-    }
+    // private static void appendAgentToArguments(String agent, List<String> arguments) {
+    //     arguments.add(CxConstants.AGENT);
+    //     if (agent != null && !agent.isEmpty()){
+    //         arguments.add(agent);
+    //     }
+    //     else{
+    //         arguments.add("CLI-Java-Wrapper");
+    //     }
+    // }
 
     public List<String> projectBranches(@NonNull UUID projectId, String filter)
             throws CxException, IOException, InterruptedException {
@@ -349,10 +349,6 @@ public class CxWrapper {
         arguments.add(fileName);
         arguments.add(CxConstants.OUTPUT_PATH);
         arguments.add(tempDir);
-        if (agent != null) {
-            arguments.add(CxConstants.AGENT);
-            arguments.add(agent);
-        }
         return Execution.executeCommand(arguments,
                 logger, tempDir,
                 fileName + reportFormat.getExtension());
@@ -591,8 +587,6 @@ public class CxWrapper {
         arguments.add(CxConstants.SUB_CMD_TELEMETRY_AI);
         arguments.add(CxConstants.AI_PROVIDER);
         arguments.add(aiProvider);
-        arguments.add(CxConstants.AGENT);
-        arguments.add(agent);
         arguments.add(CxConstants.TYPE);
         arguments.add(eventType);
         arguments.add(CxConstants.SUB_TYPE);
