@@ -429,14 +429,9 @@ public class CxWrapper {
                     enginePath= Execution.executeCommand((arguments), logger, line->line);
                 }
                 catch (CxException e){
-                    throw new CxException(1,"Engine "+engineName+" is not installed on the system");
+                    throw new CxException(1,"Engine "+engineName+" is not installed on the system or not set at location /usr/local/bin");
                 }
 
-                if(!enginePath.startsWith("/usr/local/bin/")){
-                    throw new CxException(1, engineName+ " was found at: " + enginePath + "\n" +
-                            "Please create a symlink at /usr/local/bin/docker:\n\n" +
-                            "sudo ln -s " + enginePath + " /usr/local/bin/"+engineName +"\n");
-                }
                 return enginePath;
             case OS_WINDOWS:
             case OS_LINUX:
@@ -444,7 +439,7 @@ public class CxWrapper {
                 arguments.add("--version");
                 try {
                     Execution.executeCommand(arguments, logger, line -> line);
-                    return engineName; // docker is available via PATH
+                    return engineName;
                 } catch (CxException | IOException e) {
                     throw new CxException(
                             1,engineName+" is not installed or is not accessible from the system PATH."
