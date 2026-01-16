@@ -31,15 +31,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+
+import static com.checkmarx.ast.wrapper.Execution.*;
 
 public class CxWrapper {
 
     private static final CollectionType BRANCHES_TYPE = TypeFactory.defaultInstance()
             .constructCollectionType(List.class, String.class);
+    private static final String OS_LINUX = "linux";
+    private static final String OS_WINDOWS = "windows";
+    private static final String OS_MAC = "mac";
 
     @NonNull
     private final CxConfig cxConfig;
@@ -411,6 +413,49 @@ public class CxWrapper {
         }
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, KicsRealtimeResults::fromLine);
+    }
+
+    public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String containerTool, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
+    public String checkEngineExist(@NonNull String engineName) throws CxException, IOException, InterruptedException {
+             String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+             String osType=Execution.getOperatingSystemType(osName);
+                return this.checkEngine(engineName,osType);
+    }
+
+    private  String checkEngine(String engineName, String osType ) throws CxException, IOException, InterruptedException {
+        List<String> arguments = new ArrayList<>();
+        switch (osType){
+            case OS_MAC:
+                String enginePath;
+                arguments.add("/bin/sh");
+                arguments.add("-c");
+                arguments.add("command -v " + engineName);
+                try{
+                    enginePath= Execution.executeCommand((arguments), logger, line->line);
+                }
+                throw new CxException(
+                        1,
+                        "Engine '" + engineName + "' is not installed or not found at /usr/local/bin)."
+                );
+
+
+                return enginePath;
+            case OS_WINDOWS:
+            case OS_LINUX:
+                arguments.add(engineName);
+                arguments.add("--version");
+                try {
+                    Execution.executeCommand(arguments, logger, line -> line);
+                    return engineName;
+                } catch (CxException | IOException e) {
+                    throw new CxException(
+                            1,engineName+" is not installed or is not accessible from the system PATH."
+                    );
+                }
+            default:
+                throw new IllegalArgumentException("Unsupported OS: " + osType);
+        }
+
     }
 
     public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String containerTool, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
