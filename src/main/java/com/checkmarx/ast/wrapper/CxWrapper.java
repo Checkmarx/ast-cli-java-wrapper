@@ -426,15 +426,16 @@ public class CxWrapper {
                 arguments.add("-c");
                 arguments.add("command -v " + engineName);
                 try{
-                    enginePath= Execution.executeCommand((arguments), logger, line->line);
+                    enginePath = Execution.executeCommand((arguments), logger, line->line);
+                    return enginePath;
                 }
-                throw new CxException(
-                        1,
-                        "Engine '" + engineName + "' is not installed or not found at /usr/local/bin)."
-                );
+               catch (CxException | IOException e) {
+                   throw new CxException(
+                           1,
+                           "Engine '" + engineName + "' is not installed or not found at /usr/local/bin)."
+                   );
+               }
 
-
-                return enginePath;
             case OS_WINDOWS:
             case OS_LINUX:
                 arguments.add(engineName);
