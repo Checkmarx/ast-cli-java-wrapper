@@ -24,4 +24,14 @@ public class TenantTest extends BaseTest {
         boolean enabled = Assertions.assertDoesNotThrow(() -> wrapper.aiMcpServerEnabled());
         Assertions.assertTrue(enabled, "AI MCP Server flag expected to be true");
     }
+
+    @Test
+    void testDevAssistEnabled() {
+        Assertions.assertDoesNotThrow(() -> wrapper.devAssistEnabled());
+    }
+
+    @Test
+    void testOneAssistEnabled() {
+        Assertions.assertDoesNotThrow(() -> wrapper.oneAssistEnabled());
+    }
 }

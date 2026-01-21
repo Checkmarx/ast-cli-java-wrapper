@@ -29,17 +29,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+
+import static com.checkmarx.ast.wrapper.Execution.*;
 
 public class CxWrapper {
 
     private static final CollectionType BRANCHES_TYPE = TypeFactory.defaultInstance()
             .constructCollectionType(List.class, String.class);
+    private static final String OS_LINUX = "linux";
+    private static final String OS_WINDOWS = "windows";
+    private static final String OS_MAC = "mac";
 
     @NonNull
     private final CxConfig cxConfig;
@@ -248,7 +253,7 @@ public class CxWrapper {
         return Execution.executeCommand(withConfigArguments(arguments), logger, Project::listFromLine);
     }
 
-    public ScanResult ScanAsca(String fileSource, boolean ascaLatestVersion, String agent) throws IOException, InterruptedException, CxException {
+    public ScanResult ScanAsca(String fileSource, boolean ascaLatestVersion, String agent, String ignoredFilePath) throws IOException, InterruptedException, CxException {
         this.logger.info("Fetching ASCA scanResult");
 
         List<String> arguments = new ArrayList<>();
@@ -259,23 +264,27 @@ public class CxWrapper {
         if (ascaLatestVersion) {
             arguments.add(CxConstants.ASCA_LATEST_VERSION);
         }
+        if (StringUtils.isNotBlank(ignoredFilePath)) {
+            arguments.add(CxConstants.IGNORED_FILE_PATH);
+            arguments.add(ignoredFilePath);
+        }
 
-        appendAgentToArguments(agent, arguments);
+
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, ScanResult::fromLine,
                 (args, ignored) ->
                         (args.size() >= 3 && args.get(1).equals(CxConstants.CMD_SCAN) && args.get(2).equals(CxConstants.SUB_CMD_ASCA)));
     }
 
-    private static void appendAgentToArguments(String agent, List<String> arguments) {
-        arguments.add(CxConstants.AGENT);
-        if (agent != null && !agent.isEmpty()){
-            arguments.add(agent);
-        }
-        else{
-            arguments.add("CLI-Java-Wrapper");
-        }
-    }
+    // private static void appendAgentToArguments(String agent, List<String> arguments) {
+    //     arguments.add(CxConstants.AGENT);
+    //     if (agent != null && !agent.isEmpty()){
+    //         arguments.add(agent);
+    //     }
+    //     else{
+    //         arguments.add("CLI-Java-Wrapper");
+    //     }
+    // }
 
     public List<String> projectBranches(@NonNull UUID projectId, String filter)
             throws CxException, IOException, InterruptedException {
@@ -345,10 +354,6 @@ public class CxWrapper {
         arguments.add(fileName);
         arguments.add(CxConstants.OUTPUT_PATH);
         arguments.add(tempDir);
-        if (agent != null) {
-            arguments.add(CxConstants.AGENT);
-            arguments.add(agent);
-        }
         return Execution.executeCommand(arguments,
                 logger, tempDir,
                 fileName + reportFormat.getExtension());
@@ -407,6 +412,68 @@ public class CxWrapper {
         }
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, KicsRealtimeResults::fromLine);
+    }
+
+    public String checkEngineExist(@NonNull String engineName) throws CxException, IOException, InterruptedException {
+             String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+             String osType=Execution.getOperatingSystemType(osName);
+                return this.checkEngine(engineName,osType);
+    }
+
+    private String verifyEngineOnMAC(String engineName,List<String>arguments) throws CxException, IOException, InterruptedException {
+        Exception lastException = null;
+        String enginePath;
+        try{
+            enginePath= Execution.executeCommand((arguments), logger, line->line);
+            return enginePath;
+        } catch (CxException | IOException e) {
+            lastException = e;
+        }
+        Path dockerPath = Paths.get(CxConstants.DOCKER_FALLBACK_PATH);
+        Path podmanPath = Paths.get(CxConstants.PODMAN_FALLBACK_PATH);
+        if (CxConstants.DOCKER.equalsIgnoreCase(engineName)) {
+            if (Files.isSymbolicLink(dockerPath)) {
+                return Files.readSymbolicLink(dockerPath).toAbsolutePath().toString();
+            }
+            else { return dockerPath.toAbsolutePath().toString(); }
+        }
+        else if (CxConstants.PODMAN.equalsIgnoreCase(engineName)) {
+            if (Files.exists(podmanPath)) {
+                if (Files.isSymbolicLink(podmanPath)) {
+                    return Files.readSymbolicLink(podmanPath).toAbsolutePath().toString();
+                }
+                else{
+                    return podmanPath.toAbsolutePath().toString();
+                }
+            }
+        }
+        throw new CxException( 1, "Engine '" + engineName + "' is not installed or not symlinked to /usr/local/bin." );
+    }
+
+    private  String checkEngine(String engineName, String osType ) throws CxException, IOException, InterruptedException {
+        List<String> arguments = new ArrayList<>();
+        switch (osType){
+            case OS_MAC:
+                arguments.add("/bin/sh");
+                arguments.add("-c");
+                arguments.add("command -v " + engineName);
+                return verifyEngineOnMAC(engineName,arguments);
+            case OS_WINDOWS:
+            case OS_LINUX:
+                arguments.add(engineName);
+                arguments.add("--version");
+                try {
+                    Execution.executeCommand(arguments, logger, line -> line);
+                    return engineName;
+                } catch (CxException | IOException e) {
+                    throw new CxException(
+                            1,engineName+" is not installed or is not accessible from the system PATH."
+                    );
+                }
+            default:
+                throw new IllegalArgumentException("Unsupported OS: " + osType);
+        }
+
     }
 
     public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String containerTool, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
@@ -495,7 +562,7 @@ public class CxWrapper {
 
     public boolean ideScansEnabled() throws CxException, IOException, InterruptedException {
         List<TenantSetting> tenantSettings = tenantSettings();
-        if (tenantSettings == null) {
+        if (tenantSettings == null || tenantSettings.isEmpty()) {
             throw new CxException(1, "Unable to parse tenant settings");
         }
         return tenantSettings.stream()
@@ -524,6 +591,28 @@ public class CxWrapper {
         arguments.add(CxConstants.SUB_CMD_TENANT);
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, TenantSetting::listFromLine);
+    }
+
+
+
+    public boolean getTenantSetting(String key) throws CxException, IOException, InterruptedException {
+        List<TenantSetting> tenantSettings = tenantSettings();
+        if (tenantSettings == null) {
+            throw new CxException(1, "Unable to parse tenant settings");
+        }
+        return tenantSettings.stream()
+                .filter(t -> t.getKey().equals(key))
+                .findFirst()
+                .map(t -> Boolean.parseBoolean(t.getValue()))
+                .orElse(false);
+    }
+    public boolean devAssistEnabled() throws CxException, IOException, InterruptedException {
+        return getTenantSetting(CxConstants.DEV_ASSIST_LICENSE_KEY);
+
+    }
+
+    public boolean oneAssistEnabled() throws CxException, IOException, InterruptedException {
+        return getTenantSetting(CxConstants.ONE_ASSIST_LICENSE_KEY);
     }
 
     public MaskResult maskSecrets(@NonNull String filePath) throws CxException, IOException, InterruptedException {
@@ -565,8 +654,6 @@ public class CxWrapper {
         arguments.add(CxConstants.SUB_CMD_TELEMETRY_AI);
         arguments.add(CxConstants.AI_PROVIDER);
         arguments.add(aiProvider);
-        arguments.add(CxConstants.AGENT);
-        arguments.add(agent);
         arguments.add(CxConstants.TYPE);
         arguments.add(eventType);
         arguments.add(CxConstants.SUB_TYPE);

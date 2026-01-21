@@ -75,6 +75,8 @@ public final class CxConstants {
     static final String SUB_CMD_TENANT = "tenant";
     static final String IDE_SCANS_KEY = "scan.config.plugins.ideScans";
     static final String AI_MCP_SERVER_KEY = "scan.config.plugins.aiMcpServer";
+    static final String DEV_ASSIST_LICENSE_KEY = "scan.config.plugins.cxdevassist";
+    static final String ONE_ASSIST_LICENSE_KEY = "scan.config.plugins.cxoneassist";
     static final String IGNORED_FILE_PATH = "--ignored-file-path";
     static final String SUB_CMD_OSS_REALTIME = "oss-realtime";
     static final String SUB_CMD_IAC_REALTIME = "iac-realtime";
@@ -91,4 +93,8 @@ public final class CxConstants {
     static final String SCAN_TYPE_FLAG = "--scan-type";
     static final String STATUS = "--status";
     static final String TOTAL_COUNT = "--total-count";
+    static final String DOCKER = "docker";
+    static final String PODMAN = "podman";
+    static final String PODMAN_FALLBACK_PATH = "/usr/local/bin/podman";
+    static final String DOCKER_FALLBACK_PATH = "/usr/local/bin/docker";
 }
