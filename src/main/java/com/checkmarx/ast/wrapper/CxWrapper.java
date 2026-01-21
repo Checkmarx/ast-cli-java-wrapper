@@ -29,8 +29,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static com.checkmarx.ast.wrapper.Execution.*;
@@ -426,15 +429,33 @@ public class CxWrapper {
                 arguments.add("/bin/sh");
                 arguments.add("-c");
                 arguments.add("command -v " + engineName);
+                Exception lastException = null;
                 try{
                     enginePath= Execution.executeCommand((arguments), logger, line->line);
+                    return enginePath;
                 } catch (CxException | IOException e) {
-                throw new CxException(
-                        1,
-                        "Engine '" + engineName + "' is not installed or not found at /usr/local/bin)."
-                );
+                    lastException = e;
                 }
-                return enginePath;
+                Path dockerPath = Paths.get("/usr/local/bin/docker");
+                Path podmanPath = Paths.get("/usr/local/bin/podman");
+                if ("docker".equalsIgnoreCase(engineName)) {
+                    if (Files.isSymbolicLink(dockerPath)) {
+                        return Files.readSymbolicLink(dockerPath).toAbsolutePath().toString();
+                    }
+                    else { return dockerPath.toAbsolutePath().toString(); }
+                }
+                else if ("podman".equalsIgnoreCase(engineName)) {
+                    if (Files.exists(podmanPath)) {
+                        if (Files.isSymbolicLink(podmanPath)) {
+                            return Files.readSymbolicLink(podmanPath).toAbsolutePath().toString();
+                        }
+                        else{
+                            return podmanPath.toAbsolutePath().toString();
+                        }
+                    }
+                }
+                throw new CxException( 1, "Engine '" + engineName + "' is not installed or not symlinked to /usr/local/bin." );
+
             case OS_WINDOWS:
             case OS_LINUX:
                 arguments.add(engineName);
