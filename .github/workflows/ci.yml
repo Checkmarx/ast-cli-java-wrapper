@@ -74,7 +74,7 @@ jobs:
           jacoco-csv-file: target/site/jacoco/jacoco.csv
 
       - name: Upload JaCoCo coverage report
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 #v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 #v4
         with:
           name: jacoco-coverage-report
           path: target/site/jacoco
