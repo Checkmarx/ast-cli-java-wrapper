@@ -2,7 +2,7 @@
 <br />
 <p align="center">
   <a href="">
-    <img src="./logo.png" alt="Logo" width="80" height="80">
+    <img src="https://raw.githubusercontent.com/Checkmarx/ci-cd-integrations/main/.images/cx_x_icon.png" alt="Logo" width="80" height="80">
   </a>
 
 <h3 align="center">AST-CLI-JAVA-WRAPPER</h3>
