@@ -93,4 +93,8 @@ public final class CxConstants {
     static final String SCAN_TYPE_FLAG = "--scan-type";
     static final String STATUS = "--status";
     static final String TOTAL_COUNT = "--total-count";
+    static final String DOCKER = "docker";
+    static final String PODMAN = "podman";
+    static final String PODMAN_FALLBACK_PATH = "/usr/local/bin/podman";
+    static final String DOCKER_FALLBACK_PATH = "/usr/local/bin/docker";
 }

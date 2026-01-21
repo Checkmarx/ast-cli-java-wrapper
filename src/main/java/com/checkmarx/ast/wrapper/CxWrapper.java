@@ -414,48 +414,50 @@ public class CxWrapper {
         return Execution.executeCommand(withConfigArguments(arguments), logger, KicsRealtimeResults::fromLine);
     }
 
-    // public <T> T realtimeScan(@NonNull String subCommand, @NonNull String sourcePath, String containerTool, String ignoredFilePath, java.util.function.Function<String, T> resultParser)
     public String checkEngineExist(@NonNull String engineName) throws CxException, IOException, InterruptedException {
              String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
              String osType=Execution.getOperatingSystemType(osName);
                 return this.checkEngine(engineName,osType);
     }
 
+    private String verifyEngineOnMAC(String engineName,List<String>arguments) throws CxException, IOException, InterruptedException {
+        Exception lastException = null;
+        String enginePath;
+        try{
+            enginePath= Execution.executeCommand((arguments), logger, line->line);
+            return enginePath;
+        } catch (CxException | IOException e) {
+            lastException = e;
+        }
+        Path dockerPath = Paths.get(CxConstants.DOCKER_FALLBACK_PATH);
+        Path podmanPath = Paths.get(CxConstants.PODMAN_FALLBACK_PATH);
+        if (CxConstants.DOCKER.equalsIgnoreCase(engineName)) {
+            if (Files.isSymbolicLink(dockerPath)) {
+                return Files.readSymbolicLink(dockerPath).toAbsolutePath().toString();
+            }
+            else { return dockerPath.toAbsolutePath().toString(); }
+        }
+        else if (CxConstants.PODMAN.equalsIgnoreCase(engineName)) {
+            if (Files.exists(podmanPath)) {
+                if (Files.isSymbolicLink(podmanPath)) {
+                    return Files.readSymbolicLink(podmanPath).toAbsolutePath().toString();
+                }
+                else{
+                    return podmanPath.toAbsolutePath().toString();
+                }
+            }
+        }
+        throw new CxException( 1, "Engine '" + engineName + "' is not installed or not symlinked to /usr/local/bin." );
+    }
+
     private  String checkEngine(String engineName, String osType ) throws CxException, IOException, InterruptedException {
         List<String> arguments = new ArrayList<>();
         switch (osType){
             case OS_MAC:
-                String enginePath;
                 arguments.add("/bin/sh");
                 arguments.add("-c");
                 arguments.add("command -v " + engineName);
-                Exception lastException = null;
-                try{
-                    enginePath= Execution.executeCommand((arguments), logger, line->line);
-                    return enginePath;
-                } catch (CxException | IOException e) {
-                    lastException = e;
-                }
-                Path dockerPath = Paths.get("/usr/local/bin/docker");
-                Path podmanPath = Paths.get("/usr/local/bin/podman");
-                if ("docker".equalsIgnoreCase(engineName)) {
-                    if (Files.isSymbolicLink(dockerPath)) {
-                        return Files.readSymbolicLink(dockerPath).toAbsolutePath().toString();
-                    }
-                    else { return dockerPath.toAbsolutePath().toString(); }
-                }
-                else if ("podman".equalsIgnoreCase(engineName)) {
-                    if (Files.exists(podmanPath)) {
-                        if (Files.isSymbolicLink(podmanPath)) {
-                            return Files.readSymbolicLink(podmanPath).toAbsolutePath().toString();
-                        }
-                        else{
-                            return podmanPath.toAbsolutePath().toString();
-                        }
-                    }
-                }
-                throw new CxException( 1, "Engine '" + engineName + "' is not installed or not symlinked to /usr/local/bin." );
-
+                return verifyEngineOnMAC(engineName,arguments);
             case OS_WINDOWS:
             case OS_LINUX:
                 arguments.add(engineName);
@@ -560,7 +562,7 @@ public class CxWrapper {
 
     public boolean ideScansEnabled() throws CxException, IOException, InterruptedException {
         List<TenantSetting> tenantSettings = tenantSettings();
-        if (tenantSettings == null) {
+        if (tenantSettings == null || tenantSettings.isEmpty()) {
             throw new CxException(1, "Unable to parse tenant settings");
         }
         return tenantSettings.stream()
