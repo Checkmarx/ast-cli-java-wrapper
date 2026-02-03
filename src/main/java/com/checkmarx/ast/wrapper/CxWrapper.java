@@ -421,33 +421,16 @@ public class CxWrapper {
     }
 
     private String verifyEngineOnMAC(String engineName,List<String>arguments) throws CxException, IOException, InterruptedException {
-        Exception lastException = null;
-        String enginePath;
+        // Try to verify engine exists via shell command
         try{
-            enginePath= Execution.executeCommand((arguments), logger, line->line);
-            return enginePath;
+            Execution.executeCommand((arguments), logger, line->line);
         } catch (CxException | IOException e) {
-            lastException = e;
+            // Log but don't fail - CLI will handle fallback path resolution
+            // This handles the case when IDE is launched via GUI (no PATH inherited)
+            this.logger.debug("Engine '{}' not found in PATH, CLI will try fallback paths", engineName);
         }
-        Path dockerPath = Paths.get(CxConstants.DOCKER_FALLBACK_PATH);
-        Path podmanPath = Paths.get(CxConstants.PODMAN_FALLBACK_PATH);
-        if (CxConstants.DOCKER.equalsIgnoreCase(engineName)) {
-            if (Files.isSymbolicLink(dockerPath)) {
-                return Files.readSymbolicLink(dockerPath).toAbsolutePath().toString();
-            }
-            else { return dockerPath.toAbsolutePath().toString(); }
-        }
-        else if (CxConstants.PODMAN.equalsIgnoreCase(engineName)) {
-            if (Files.exists(podmanPath)) {
-                if (Files.isSymbolicLink(podmanPath)) {
-                    return Files.readSymbolicLink(podmanPath).toAbsolutePath().toString();
-                }
-                else{
-                    return podmanPath.toAbsolutePath().toString();
-                }
-            }
-        }
-        throw new CxException( 1, "Engine '" + engineName + "' is not installed or not symlinked to /usr/local/bin." );
+        // Always return just the engine name, let CLI resolve the actual path
+        return engineName;
     }
 
     private  String checkEngine(String engineName, String osType ) throws CxException, IOException, InterruptedException {
