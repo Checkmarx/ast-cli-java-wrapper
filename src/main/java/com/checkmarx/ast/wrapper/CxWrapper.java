@@ -487,14 +487,9 @@ public class CxWrapper {
             }
         }
 
-        String errorMsg = String.format(
-            "Container engine '%s' not found. Checked paths: %s. " +
-            "Please ensure Docker or Podman is installed and accessible. " +
-            "If installed via Docker Desktop, try launching IntelliJ from terminal: open -a 'IntelliJ IDEA'",
-            engineName, String.join(", ", fallbackPaths)
+        throw new CxException(
+                1, engineName + " is not installed or is not accessible from the system PATH."
         );
-        this.logger.error(errorMsg);
-        throw new CxException(1, errorMsg);
     }
 
     /**
