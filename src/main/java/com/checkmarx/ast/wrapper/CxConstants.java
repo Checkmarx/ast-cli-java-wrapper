@@ -97,4 +97,14 @@ public final class CxConstants {
     static final String PODMAN = "podman";
     static final String PODMAN_FALLBACK_PATH = "/usr/local/bin/podman";
     static final String DOCKER_FALLBACK_PATH = "/usr/local/bin/docker";
+
+    // Additional Docker fallback paths for macOS
+    // These paths cover various Docker installation methods on macOS:
+    // - Homebrew on Apple Silicon: /opt/homebrew/bin/docker
+    // - Docker Desktop CLI tools: ~/.docker/bin/docker (resolved at runtime)
+    // - Docker.app bundle: /Applications/Docker.app/Contents/Resources/bin/docker
+    // - Rancher Desktop: ~/.rd/bin/docker (resolved at runtime)
+    static final String DOCKER_HOMEBREW_PATH = "/opt/homebrew/bin/docker";
+    static final String DOCKER_APP_PATH = "/Applications/Docker.app/Contents/Resources/bin/docker";
+    static final String PODMAN_HOMEBREW_PATH = "/opt/homebrew/bin/podman";
 }

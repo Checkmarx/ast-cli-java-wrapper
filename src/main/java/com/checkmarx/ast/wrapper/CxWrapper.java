@@ -421,33 +421,112 @@ public class CxWrapper {
     }
 
     private String verifyEngineOnMAC(String engineName,List<String>arguments) throws CxException, IOException, InterruptedException {
-        Exception lastException = null;
-        String enginePath;
+        this.logger.debug("Verifying container engine '{}' on macOS", engineName);
+
+        // First, try to find the engine via shell command (works when launched from terminal)
         try{
-            enginePath= Execution.executeCommand((arguments), logger, line->line);
-            return enginePath;
+            String enginePath = Execution.executeCommand((arguments), logger, line->line);
+            if (enginePath != null && !enginePath.isEmpty()) {
+                this.logger.debug("Found engine '{}' via shell command: {}", engineName, enginePath);
+                return enginePath;
+            }
         } catch (CxException | IOException e) {
-            lastException = e;
+            this.logger.debug("Shell command lookup failed for '{}': {}", engineName, e.getMessage());
         }
-        Path dockerPath = Paths.get(CxConstants.DOCKER_FALLBACK_PATH);
-        Path podmanPath = Paths.get(CxConstants.PODMAN_FALLBACK_PATH);
+
+        // Build list of fallback paths based on engine type
+        // This handles the case when IntelliJ is launched via GUI (double-click) and doesn't inherit shell PATH
+        List<String> fallbackPaths = new ArrayList<>();
         if (CxConstants.DOCKER.equalsIgnoreCase(engineName)) {
-            if (Files.isSymbolicLink(dockerPath)) {
-                return Files.readSymbolicLink(dockerPath).toAbsolutePath().toString();
+            fallbackPaths.add(CxConstants.DOCKER_FALLBACK_PATH);           // /usr/local/bin/docker
+            fallbackPaths.add(CxConstants.DOCKER_HOMEBREW_PATH);           // /opt/homebrew/bin/docker (Apple Silicon)
+            fallbackPaths.add(CxConstants.DOCKER_APP_PATH);                // /Applications/Docker.app/Contents/Resources/bin/docker
+            // Add user home-based paths
+            String userHome = System.getProperty("user.home");
+            if (userHome != null) {
+                fallbackPaths.add(userHome + "/.docker/bin/docker");       // Docker Desktop CLI
+                fallbackPaths.add(userHome + "/.rd/bin/docker");           // Rancher Desktop
             }
-            else { return dockerPath.toAbsolutePath().toString(); }
-        }
-        else if (CxConstants.PODMAN.equalsIgnoreCase(engineName)) {
-            if (Files.exists(podmanPath)) {
-                if (Files.isSymbolicLink(podmanPath)) {
-                    return Files.readSymbolicLink(podmanPath).toAbsolutePath().toString();
-                }
-                else{
-                    return podmanPath.toAbsolutePath().toString();
-                }
+        } else if (CxConstants.PODMAN.equalsIgnoreCase(engineName)) {
+            fallbackPaths.add(CxConstants.PODMAN_FALLBACK_PATH);           // /usr/local/bin/podman
+            fallbackPaths.add(CxConstants.PODMAN_HOMEBREW_PATH);           // /opt/homebrew/bin/podman (Apple Silicon)
+            // Add user home-based paths
+            String userHome = System.getProperty("user.home");
+            if (userHome != null) {
+                fallbackPaths.add(userHome + "/.local/bin/podman");
             }
         }
-        throw new CxException( 1, "Engine '" + engineName + "' is not installed or not symlinked to /usr/local/bin." );
+
+        this.logger.debug("Checking {} fallback paths for engine '{}'", fallbackPaths.size(), engineName);
+
+        // Try each fallback path
+        for (String pathStr : fallbackPaths) {
+            Path path = Paths.get(pathStr);
+            this.logger.debug("Checking fallback path: {}", pathStr);
+
+            if (Files.exists(path)) {
+                String resolvedPath;
+                try {
+                    if (Files.isSymbolicLink(path)) {
+                        resolvedPath = Files.readSymbolicLink(path).toAbsolutePath().toString();
+                        this.logger.debug("Resolved symlink {} -> {}", pathStr, resolvedPath);
+                    } else {
+                        resolvedPath = path.toAbsolutePath().toString();
+                    }
+
+                    // Verify the engine is executable and works
+                    if (verifyEngineExecutable(resolvedPath)) {
+                        this.logger.info("Found working container engine '{}' at: {}", engineName, resolvedPath);
+                        return resolvedPath;
+                    }
+                } catch (IOException e) {
+                    this.logger.debug("Failed to resolve path {}: {}", pathStr, e.getMessage());
+                }
+            } else {
+                this.logger.debug("Path does not exist: {}", pathStr);
+            }
+        }
+
+        throw new CxException(
+                1, engineName + " is not installed or is not accessible from the system PATH."
+        );
+    }
+
+    /**
+     * Verifies that the engine at the given path is executable and responds to --version.
+     *
+     * @param enginePath the absolute path to the container engine executable
+     * @return true if the engine is working, false otherwise
+     */
+    private boolean verifyEngineExecutable(String enginePath) {
+        try {
+            Path path = Paths.get(enginePath);
+            if (!Files.exists(path) || !Files.isExecutable(path)) {
+                this.logger.debug("Engine path '{}' is not executable", enginePath);
+                return false;
+            }
+
+            // Run a quick version check to verify the engine works
+            ProcessBuilder pb = new ProcessBuilder(enginePath, "--version");
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+            boolean completed = process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS);
+
+            if (completed && process.exitValue() == 0) {
+                this.logger.debug("Engine at '{}' verified successfully", enginePath);
+                return true;
+            } else {
+                this.logger.debug("Engine at '{}' failed verification (exit code: {}, completed: {})",
+                    enginePath, process.exitValue(), completed);
+                if (!completed) {
+                    process.destroyForcibly();
+                }
+                return false;
+            }
+        } catch (Exception e) {
+            this.logger.debug("Engine verification failed for '{}': {}", enginePath, e.getMessage());
+            return false;
+        }
     }
 
     private  String checkEngine(String engineName, String osType ) throws CxException, IOException, InterruptedException {
