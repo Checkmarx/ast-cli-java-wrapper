@@ -1,5 +1,6 @@
 package com.checkmarx.ast.wrapper;
 
+import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
 import lombok.NonNull;
 import org.slf4j.Logger;
 
@@ -12,10 +13,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -57,7 +55,7 @@ public final class Execution {
             String line;
             StringBuilder output = new StringBuilder();
             while ((line = br.readLine()) != null) {
-                logger.info(line);
+                logger.debug(line);
                 output.append(line).append(LINE_SEPARATOR);
                 T parsedLine = lineParser.apply(line);
                 if (parsedLine != null) {
@@ -98,7 +96,7 @@ public final class Execution {
             String line;
             StringBuilder stringBuilder = new StringBuilder();
             while ((line = br.readLine()) != null) {
-                logger.info(line);
+                logger.debug(line);
                 stringBuilder.append(line).append(LINE_SEPARATOR);
             }
             process.waitFor();
@@ -171,7 +169,7 @@ public final class Execution {
         return fileName;
     }
 
-    private static String getOperatingSystemType(String osName) {
+    public static String getOperatingSystemType(String osName) {
         if (osName.contains(OS_LINUX)) {
             return OS_LINUX;
         } else if (osName.contains(OS_WINDOWS)) {
@@ -217,4 +215,6 @@ public final class Execution {
         }
         return md5;
     }
+
+
 }

@@ -1,5 +1,6 @@
 package com.checkmarx.ast.results.result;
 
+import com.checkmarx.ast.wrapper.CxConstants;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -53,7 +54,7 @@ public class Result {
                   @JsonProperty("comments") Comments comments,
                   @JsonProperty("vulnerabilityDetails") VulnerabilityDetails vulnerabilityDetails,
                   @JsonProperty("scaType") String scaType) {
-        this.type = type;
+        this.type = normalizeType(type);
         this.scaType=scaType;
         this.label = label;
         this.id = id;
@@ -73,5 +74,15 @@ public class Result {
         this.data = data;
         this.comments = comments;
         this.vulnerabilityDetails = vulnerabilityDetails;
+    }
+
+    /**
+     * Normalizes special-case types coming from JSON into internal constants.
+     */
+    private static String normalizeType(String rawType) {
+        if ("sscs-secret-detection".equals(rawType)) {
+            return CxConstants.SECRET_DETECTION;
+        }
+        return rawType; // leave other engine types unchanged
     }
 }

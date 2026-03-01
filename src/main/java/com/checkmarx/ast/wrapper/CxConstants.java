@@ -13,6 +13,7 @@ public final class CxConstants {
     public static final String AGENT = "--agent";
     public static final String SAST = "sast";
     public static final String DEBUG = "--debug";
+    public static final String SECRET_DETECTION = "scs";
     static final String CLIENT_ID = "--client-id";
     static final String CLIENT_SECRET = "--client-secret";
     static final String API_KEY = "--apikey";
@@ -73,4 +74,37 @@ public final class CxConstants {
     static final String SUB_CMD_LEARN_MORE = "learn-more";
     static final String SUB_CMD_TENANT = "tenant";
     static final String IDE_SCANS_KEY = "scan.config.plugins.ideScans";
+    static final String AI_MCP_SERVER_KEY = "scan.config.plugins.aiMcpServer";
+    static final String DEV_ASSIST_LICENSE_KEY = "scan.config.plugins.cxdevassist";
+    static final String ONE_ASSIST_LICENSE_KEY = "scan.config.plugins.cxoneassist";
+    static final String IGNORED_FILE_PATH = "--ignored-file-path";
+    static final String SUB_CMD_OSS_REALTIME = "oss-realtime";
+    static final String SUB_CMD_IAC_REALTIME = "iac-realtime";
+    static final String SUB_CMD_SECRETS_REALTIME = "secrets-realtime";
+    static final String SUB_CMD_CONTAINERS_REALTIME = "containers-realtime";
+    static final String SUB_CMD_MASK = "mask";
+    static final String RESULT_FILE = "--result-file";
+    static final String CMD_TELEMETRY = "telemetry";
+    static final String SUB_CMD_TELEMETRY_AI = "ai";
+    static final String AI_PROVIDER = "--ai-provider";
+    static final String TYPE = "--type";
+    static final String SUB_TYPE = "--sub-type";
+    static final String PROBLEM_SEVERITY = "--problem-severity";
+    static final String SCAN_TYPE_FLAG = "--scan-type";
+    static final String STATUS = "--status";
+    static final String TOTAL_COUNT = "--total-count";
+    static final String DOCKER = "docker";
+    static final String PODMAN = "podman";
+    static final String PODMAN_FALLBACK_PATH = "/usr/local/bin/podman";
+    static final String DOCKER_FALLBACK_PATH = "/usr/local/bin/docker";
+
+    // Additional Docker fallback paths for macOS
+    // These paths cover various Docker installation methods on macOS:
+    // - Homebrew on Apple Silicon: /opt/homebrew/bin/docker
+    // - Docker Desktop CLI tools: ~/.docker/bin/docker (resolved at runtime)
+    // - Docker.app bundle: /Applications/Docker.app/Contents/Resources/bin/docker
+    // - Rancher Desktop: ~/.rd/bin/docker (resolved at runtime)
+    static final String DOCKER_HOMEBREW_PATH = "/opt/homebrew/bin/docker";
+    static final String DOCKER_APP_PATH = "/Applications/Docker.app/Contents/Resources/bin/docker";
+    static final String PODMAN_HOMEBREW_PATH = "/opt/homebrew/bin/podman";
 }

@@ -20,6 +20,8 @@ public class ScaPackageData {
     boolean outdated;
     boolean supportsQuickFix;
     String typeOfDependency;
+    boolean isDevelopmentDependency;
+    boolean isTestDependency;
 
 
     public ScaPackageData(@JsonProperty("Id") String id,
@@ -27,7 +29,9 @@ public class ScaPackageData {
                           @JsonProperty("dependencyPaths") List<List<DependencyPath>> dependencyPaths,
                           @JsonProperty("outdated") boolean outdated,
                           @JsonProperty("supportsQuickFix") boolean supportsQuickFix,
-                          @JsonProperty("typeOfDependency") String typeOfDependency) {
+                          @JsonProperty("typeOfDependency") String typeOfDependency,
+                          @JsonProperty("isDevelopmentDependency") boolean isDevelopmentDependency,
+                          @JsonProperty("isTestDependency") boolean isTestDependency) {
 
         Id = id;
         this.fixLink = fixLink;
@@ -35,5 +39,7 @@ public class ScaPackageData {
         this.outdated = outdated;
         this.supportsQuickFix = supportsQuickFix;
         this.typeOfDependency = typeOfDependency;
+        this.isDevelopmentDependency = isDevelopmentDependency;
+        this.isTestDependency = isTestDependency;
     }
 }

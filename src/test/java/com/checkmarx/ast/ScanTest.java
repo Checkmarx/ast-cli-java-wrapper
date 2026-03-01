@@ -3,7 +3,9 @@ package com.checkmarx.ast;
 import com.checkmarx.ast.asca.ScanDetail;
 import com.checkmarx.ast.asca.ScanResult;
 import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
+import com.checkmarx.ast.ossrealtime.OssRealtimeResults;
 import com.checkmarx.ast.scan.Scan;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +25,7 @@ class ScanTest extends BaseTest {
 
     @Test
     void testScanAsca_WhenFileWithVulnerabilitiesIsSentWithAgent_ReturnSuccessfulResponseWithCorrectValues() throws Exception {
-        ScanResult scanResult = wrapper.ScanAsca("src/test/resources/python-vul-file.py", true, "vscode");
+        ScanResult scanResult = wrapper.ScanAsca("src/test/resources/python-vul-file.py", true, "vscode", null);
 
         // Assertions for the scan result
         Assertions.assertNotNull(scanResult.getRequestId(), "Request ID should not be null");
@@ -44,7 +46,7 @@ class ScanTest extends BaseTest {
 
     @Test
     void testScanAsca_WhenFileWithoutVulnerabilitiesIsSent_ReturnSuccessfulResponseWithCorrectValues() throws Exception {
-        ScanResult scanResult = wrapper.ScanAsca("src/test/resources/csharp-no-vul.cs", true, null);
+        ScanResult scanResult = wrapper.ScanAsca("src/test/resources/csharp-no-vul.cs", true, null, null);
         Assertions.assertNotNull(scanResult.getRequestId());
         Assertions.assertTrue(scanResult.isStatus());
         Assertions.assertNull(scanResult.getError());
@@ -53,10 +55,23 @@ class ScanTest extends BaseTest {
 
     @Test
     void testScanAsca_WhenMissingFileExtension_ReturnFileExtensionIsRequiredFailure() throws Exception {
-        ScanResult scanResult = wrapper.ScanAsca("CODEOWNERS", true, null);
+        ScanResult scanResult = wrapper.ScanAsca("CODEOWNERS", true, null, null);
         Assertions.assertNotNull(scanResult.getRequestId());
         Assertions.assertNotNull(scanResult.getError());
         Assertions.assertEquals("The file name must have an extension.", scanResult.getError().getDescription());
+    }
+
+    @Test
+    void testScanAsca_WithIgnoreFilePath_ShouldWorkCorrectly() throws Exception {
+        String ignoreFile = "src/test/resources/ignored-packages.json";
+
+        // Test with ignore file - should not break the scanning process
+        ScanResult scanResult = wrapper.ScanAsca("src/test/resources/python-vul-file.py", true, "test-agent", ignoreFile);
+
+        // Verify the scan completes successfully
+        Assertions.assertNotNull(scanResult.getRequestId(), "Request ID should not be null");
+        Assertions.assertTrue(scanResult.isStatus(), "Status should be true");
+        Assertions.assertNull(scanResult.getError(), "Error should be null when scan is successful");
     }
 
     @Test
@@ -90,6 +105,19 @@ class ScanTest extends BaseTest {
     void testKicsRealtimeScan() throws Exception {
         KicsRealtimeResults scan = wrapper.kicsRealtimeScan("target/test-classes/Dockerfile","","v");
         Assertions.assertTrue(scan.getResults().size() >= 1);
+    }
+
+    @Test
+    void testOssRealtimeScanWithIgnoredFile() throws Exception {
+        Assumptions.assumeTrue(getConfig().getPathToExecutable() != null && !getConfig().getPathToExecutable().isEmpty(), "PATH_TO_EXECUTABLE not set");
+
+        String source = "pom.xml";
+        String ignoreFile = "src/test/resources/ignored-packages.json";
+
+        OssRealtimeResults results = wrapper.ossRealtimeScan(source, ignoreFile);
+
+        Assertions.assertNotNull(results);
+        Assertions.assertNotNull(results.getPackages());
     }
 
 }
