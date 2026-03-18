@@ -29,14 +29,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static com.checkmarx.ast.wrapper.Execution.*;
 
 public class CxWrapper {
 
@@ -170,10 +168,44 @@ public class CxWrapper {
         arguments.add(similarityId);
         arguments.add(CxConstants.SCAN_TYPE);
         arguments.add(scanType);
-
         arguments.addAll(jsonArguments());
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, Predicate::listFromLine, Predicate::validator);
+    }
+
+    /**
+     * SCA-specific triage show command.
+     */
+    public List<Predicate> triageScaShow(@NonNull UUID projectId, String vulnerabilities, String scanType)
+            throws IOException, InterruptedException, CxException {
+        this.logger.info("Executing 'triage show' command using the CLI for SCA.");
+
+        if (StringUtils.isBlank(vulnerabilities)) {
+            this.logger.warn("Skipping SCA triage show: no vulnerability identifiers were provided.");
+            return Collections.emptyList();
+        }
+
+        List<String> arguments = new ArrayList<>();
+        arguments.add(CxConstants.CMD_TRIAGE);
+        arguments.add(CxConstants.SUB_CMD_SHOW);
+        arguments.add(CxConstants.SCAN_TYPE);
+        arguments.add(scanType);
+        arguments.add(CxConstants.VULNERABILITY_IDENTIFIERS);
+        arguments.add(vulnerabilities);
+        arguments.add(CxConstants.PROJECT_ID);
+        arguments.add(projectId.toString());
+        arguments.addAll(jsonArguments());
+
+        try {
+            return Execution.executeCommand(withConfigArguments(arguments), logger, Predicate::listFromLine, Predicate::validator);
+        } catch (CxException e) {
+            String message = e.getMessage();
+            if (message != null && message.contains("Failed to get SCA predicate result")) {
+                this.logger.info("No SCA triage history found for vulnerability identifiers: {}", vulnerabilities);
+                return Collections.emptyList();
+            }
+            throw e;
+        }
     }
 
     public List<CustomState> triageGetStates(boolean all) throws IOException, InterruptedException, CxException {
@@ -220,6 +252,39 @@ public class CxWrapper {
         }
         arguments.add(CxConstants.SEVERITY);
         arguments.add(severity);
+
+        Execution.executeCommand(withConfigArguments(arguments), logger, line -> null);
+    }
+
+    /**
+     * SCA-specific triage update command.
+     */
+    public void triageScaUpdate(@NonNull UUID projectId,
+                                String state,
+                                String comment,
+                                String vulnerabilities,
+                                String scanType)
+            throws IOException, InterruptedException, CxException {
+        this.logger.info("Executing 'triage update' command using the CLI for SCA.");
+
+        if (StringUtils.isBlank(vulnerabilities)) {
+            this.logger.warn("Skipping SCA triage update: no vulnerability identifiers were provided.");
+            return;
+        }
+
+        List<String> arguments = new ArrayList<>();
+        arguments.add(CxConstants.CMD_TRIAGE);
+        arguments.add(CxConstants.SUB_CMD_UPDATE);
+        arguments.add(CxConstants.SCAN_TYPE);
+        arguments.add(scanType);
+        arguments.add(CxConstants.VULNERABILITY_IDENTIFIERS);
+        arguments.add(vulnerabilities);
+        arguments.add(CxConstants.STATE);
+        arguments.add(state);
+        arguments.add(CxConstants.COMMENT);
+        arguments.add(comment);
+        arguments.add(CxConstants.PROJECT_ID);
+        arguments.add(projectId.toString());
 
         Execution.executeCommand(withConfigArguments(arguments), logger, line -> null);
     }

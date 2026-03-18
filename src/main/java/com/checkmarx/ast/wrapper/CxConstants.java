@@ -43,6 +43,7 @@ public final class CxConstants {
     static final String SCAN_ID = "--scan-id";
     static final String PROJECT_ID = "--project-id";
     static final String SIMILARITY_ID = "--similarity-id";
+    static final String VULNERABILITY_IDENTIFIERS = "--vulnerability-identifiers";
     static final String QUERY_ID = "--query-id";
     static final String STATE = "--state";
     static final String COMMENT = "--comment";
