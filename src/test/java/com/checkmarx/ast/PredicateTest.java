@@ -7,7 +7,7 @@ import com.checkmarx.ast.results.result.Result;
 import com.checkmarx.ast.scan.Scan;
 import com.checkmarx.ast.wrapper.CxConstants;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -51,5 +51,46 @@ class PredicateTest extends BaseTest {
     void testGetStates() throws Exception {
         List<CustomState> states = wrapper.triageGetStates(false);
         Assertions.assertNotNull(states);
+    }
+
+    @Test
+    void testScaTriage() throws Exception {
+        // Automatically find a completed scan that has SCA results
+        List<Scan> scans = wrapper.scanList("statuses=Completed");
+
+        Scan scaScan = null;
+        Result scaResult = null;
+
+        for (Scan scan : scans) {
+            Results results = wrapper.results(UUID.fromString(scan.getId()));
+            scaResult = results.getResults().stream()
+                    .filter(res -> res.getType().equalsIgnoreCase("sca"))
+                    .findFirst()
+                    .orElse(null);
+            if (scaResult != null) {
+                scaScan = scan;
+                break;
+            }
+        }
+
+        Assumptions.assumeTrue(scaScan != null, "Skipping: no completed scan with SCA results found");
+
+        String packageIdentifier = scaResult.getData().getPackageIdentifier();
+        int firstDash = packageIdentifier.indexOf('-');
+        int lastDash = packageIdentifier.lastIndexOf('-');
+        String vulnerabilities = String.format("packagename=%s,packageversion=%s,vulnerabilityId=%s,packagemanager=%s",
+                packageIdentifier.substring(firstDash + 1, lastDash),
+                packageIdentifier.substring(lastDash + 1),
+                scaResult.getVulnerabilityDetails().getCveName(),
+                packageIdentifier.substring(0, firstDash).toLowerCase());
+
+        List<Predicate> predicates = wrapper.triageScaShow(UUID.fromString(scaScan.getProjectId()), vulnerabilities, scaResult.getType());
+        Assertions.assertNotNull(predicates);
+
+        try {
+            wrapper.triageScaUpdate(UUID.fromString(scaScan.getProjectId()), TO_VERIFY, "Edited via Java Wrapper", vulnerabilities, scaResult.getType());
+        } catch (Exception e) {
+            Assertions.fail("SCA triage update failed. Should not throw exception");
+        }
     }
 }
