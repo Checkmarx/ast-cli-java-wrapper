@@ -570,7 +570,7 @@ public class CxWrapper {
                 this.logger.debug("Engine path '{}' is not executable", enginePath);
                 return false;
             }
-
+            // checking the vulnerability
             // Run a quick version check to verify the engine works
             ProcessBuilder pb = new ProcessBuilder(enginePath, "--version");
             pb.redirectErrorStream(true);
