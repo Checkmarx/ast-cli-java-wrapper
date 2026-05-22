@@ -7,7 +7,7 @@ on:
 
 jobs:
   delete_tag:
-    runs-on: ubuntu-latest
+    runs-on: cx-public-ubuntu-x64
     steps:
       - name: Delete release
         uses: dev-drprasad/delete-tag-and-release@8cd619d00037e4aeb781909c9a6b03940507d0da  # v1.0.1
