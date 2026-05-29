@@ -34,13 +34,13 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: cx-public-ubuntu-x64
     outputs:
       CLI_VERSION: ${{ steps.extract_cli_version.outputs.CLI_VERSION }}
       TAG_NAME: ${{ steps.set_tag_name.outputs.TAG_NAME }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           lfs: true
@@ -88,7 +88,7 @@ jobs:
           echo "::set-output name=TAG_NAME::${{ inputs.tag }}"
 
       - name: Cache local Maven repository
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -96,7 +96,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Set up Maven Central Repository
-        uses: actions/setup-java@v4.3.0
+        uses: actions/setup-java@2dfa2011c5b2a0f1489bf9e433881c92c1631f88 # v4.3.0
         with:
           java-version: '11'
           distribution: 'temurin'
