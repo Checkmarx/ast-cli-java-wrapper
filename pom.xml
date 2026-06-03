@@ -20,6 +20,20 @@
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>echo-maven</id>
+            <name>Echo Maven Repository (JFrog)</name>
+            <url>https://checkmarx.jfrog.io/artifactory/api/maven/echo-maven/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.commons</groupId>
