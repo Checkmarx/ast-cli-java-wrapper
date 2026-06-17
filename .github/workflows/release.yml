@@ -31,6 +31,17 @@ on:
         description: 'Version of the CLI to bundle'
         required: false
         type: string
+    secrets:
+      MAVEN_GPG_PASSPHRASE:
+        required: true
+      MAVEN_GPG_PRIVATE_KEY:
+        required: true
+      OSSRH_TOKEN:
+        required: true
+      OSSRH_USERNAME:
+        required: true
+      PERSONAL_ACCESS_TOKEN:
+        required: true
 
 jobs:
   release:
