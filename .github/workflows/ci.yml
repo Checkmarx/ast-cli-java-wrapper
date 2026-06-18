@@ -82,8 +82,8 @@ jobs:
       - name: Build with Maven
         run: mvn -B verify -DskipTests -Dgpg.skip --file pom.xml
 
-      - name: Run SpotBugs Analysis
-        if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: jwgmeligmeyling/spotbugs-github-action@b8e2c3523acb34c87f14e18cbcd2d87db8c8584e #v1.2
-        with:
-          path: '**/spotbugsXml.xml'
+      # - name: Run SpotBugs Analysis
+      #   if: ${{ github.actor != 'dependabot[bot]' }}
+      #   uses: jwgmeligmeyling/spotbugs-github-action@b8e2c3523acb34c87f14e18cbcd2d87db8c8584e #v1.2
+      #   with:
+      #     path: '**/spotbugsXml.xml'

@@ -5,20 +5,24 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   delete_tag:
+    permissions:
+      contents: write
     runs-on: cx-public-ubuntu-x64
     steps:
-      - name: Delete release
-        uses: dev-drprasad/delete-tag-and-release@8cd619d00037e4aeb781909c9a6b03940507d0da  # v1.0.1
+      - name: Delete release and tag
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          delete_release: true
-          tag_name: 1.0.0-SNAPSHOT
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete "1.0.0-SNAPSHOT" --yes --cleanup-tag --repo ${{ github.repository }} || true
+
   nightly:
     needs: delete_tag
-    uses: CheckmarxDev/ast-cli-java-wrapper/.github/workflows/release.yml@main
+    uses: Checkmarx/ast-cli-java-wrapper/.github/workflows/release.yml@main
     with:
       tag: "1.0.0-SNAPSHOT"
       dev: true
