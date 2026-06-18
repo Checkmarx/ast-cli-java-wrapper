@@ -2,8 +2,6 @@ name: Update checkmarx ast cli
 
 on:
   workflow_dispatch:
-  repository_dispatch:
-    types: [cli-version-update]
 
 permissions:
   contents: read
@@ -31,8 +29,8 @@ jobs:
       - name: Get Latest Checkmarx API version
         id: checkmarx-ast-cli
         run: |
-          echo ::set-output name=release_tag::$(curl -sL https://api.github.com/repos/checkmarx/ast-cli/releases/latest | jq -r ".tag_name")
-          echo ::set-output name=current_tag::$(<checkmarx-ast-cli.version)
+          echo "release_tag=$(curl -sL https://api.github.com/repos/checkmarx/ast-cli/releases/latest | jq -r '.tag_name')" >> $GITHUB_OUTPUT
+          echo "current_tag=$(<checkmarx-ast-cli.version)" >> $GITHUB_OUTPUT
 
       - name: Update Checkmarx cli version
         if: steps.checkmarx-ast-cli.outputs.current_tag != steps.checkmarx-ast-cli.outputs.release_tag
