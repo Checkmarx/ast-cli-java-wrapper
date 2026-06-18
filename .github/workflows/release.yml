@@ -16,6 +16,11 @@ on:
         description: 'Version of the CLI to bundle'
         required: false
         type: string
+      publish:
+        description: 'Publish package to Maven Central'
+        required: false
+        default: false
+        type: boolean
   workflow_call:
     inputs:
       tag:
@@ -31,6 +36,11 @@ on:
         description: 'Version of the CLI to bundle'
         required: false
         type: string
+      publish:
+        description: 'Publish package to Maven Central'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -116,6 +126,7 @@ jobs:
           echo "AID_PROP=${prop}" >> $GITHUB_ENV
 
       - name: Publish package
+        if: inputs.publish == true
         run: mvn --batch-mode deploy -DskipTests ${{ env.AID_PROP }}
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
