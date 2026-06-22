@@ -2,14 +2,19 @@ name: AST Java Wrapper CI
 
 on: [ pull_request ]
 
+permissions:
+  contents: read
+
 jobs:
   integration-tests:
+    permissions:
+      contents: read
     runs-on: cx-public-ubuntu-x64
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: true
 
       - name: Install Git LFS
@@ -26,6 +31,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
+
+      - name: Configure echo mirror for dependency resolution
+        run: |
+          sed -i 's|</settings>|<mirrors><mirror><id>echo</id><mirrorOf>central</mirrorOf><url>https://maven.echohq.com</url></mirror></mirrors></settings>|' ~/.m2/settings.xml
 
       - name: Check existence of cx-linux binary
         run: |
