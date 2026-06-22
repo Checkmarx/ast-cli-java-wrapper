@@ -22,9 +22,13 @@ jobs:
 
   nightly:
     needs: delete_tag
-    uses: Checkmarx/ast-cli-java-wrapper/.github/workflows/release.yml@main
+    uses: ./.github/workflows/release.yml
     with:
       tag: "1.0.0-SNAPSHOT"
       dev: true
       cliTag: "2.0.0-nightly"
-    secrets: inherit
+    secrets:
+      MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+      MAVEN_GPG_PRIVATE_KEY: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+      OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+      OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
