@@ -32,6 +32,10 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      - name: Configure echo mirror for dependency resolution
+        run: |
+          sed -i 's|</settings>|<mirrors><mirror><id>echo</id><mirrorOf>central</mirrorOf><url>https://maven.echohq.com</url></mirror></mirrors></settings>|' ~/.m2/settings.xml
+
       - name: Check existence of cx-linux binary
         run: |
           if [ ! -f "src/main/resources/cx-linux" ]; then

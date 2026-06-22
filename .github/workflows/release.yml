@@ -125,6 +125,10 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
+      - name: Configure echo mirror for dependency resolution
+        run: |
+          sed -i 's|</settings>|<mirrors><mirror><id>echo</id><mirrorOf>central</mirrorOf><url>https://maven.echohq.com</url></mirror></mirrors></settings>|' ~/.m2/settings.xml
+
       - name: Update the POM version.
         run: mvn -B versions:set -DnewVersion="$RELEASE_VERSION" --file pom.xml -DskipTests
 
