@@ -2,8 +2,6 @@ name: Update checkmarx ast cli
 
 on:
   workflow_dispatch:
-  repository_dispatch:
-    types: [cli-version-update]
 
 permissions:
   contents: read
@@ -31,8 +29,8 @@ jobs:
       - name: Get Latest Checkmarx API version
         id: checkmarx-ast-cli
         run: |
-          echo ::set-output name=release_tag::$(curl -sL https://api.github.com/repos/checkmarx/ast-cli/releases/latest | jq -r ".tag_name")
-          echo ::set-output name=current_tag::$(<checkmarx-ast-cli.version)
+          echo "release_tag=$(curl -sL https://api.github.com/repos/checkmarx/ast-cli/releases/latest | jq -r '.tag_name')" >> $GITHUB_OUTPUT
+          echo "current_tag=$(<checkmarx-ast-cli.version)" >> $GITHUB_OUTPUT
 
       - name: Update Checkmarx cli version
         if: steps.checkmarx-ast-cli.outputs.current_tag != steps.checkmarx-ast-cli.outputs.release_tag
@@ -40,14 +38,16 @@ jobs:
           RELEASE_TAG: ${{ steps.checkmarx-ast-cli.outputs.release_tag }}
         run: |
           # Update current release
-          echo ${{ steps.checkmarx-ast-cli.outputs.release_tag }} > checkmarx-ast-cli.version
+          echo "$RELEASE_TAG" > checkmarx-ast-cli.version
 
       - name: Download latest cli and update branch
         if: steps.checkmarx-ast-cli.outputs.current_tag != steps.checkmarx-ast-cli.outputs.release_tag
+        env:
+          RELEASE_TAG: ${{ steps.checkmarx-ast-cli.outputs.release_tag }}
         run: |
           # Update binaries
           chmod +x ./.github/scripts/update_cli.sh
-          ./.github/scripts/update_cli.sh ${{ steps.checkmarx-ast-cli.outputs.release_tag }}
+          ./.github/scripts/update_cli.sh "$RELEASE_TAG"
 
       - name: Track large files with Git LFS
         if: steps.checkmarx-ast-cli.outputs.current_tag != steps.checkmarx-ast-cli.outputs.release_tag
@@ -63,7 +63,7 @@ jobs:
       - name: Create Pull Request
         id: cretae_pull_request
         if: steps.checkmarx-ast-cli.outputs.current_tag != steps.checkmarx-ast-cli.outputs.release_tag
-        uses: peter-evans/create-pull-request@b1ddad2c994a25fbc81a28b3ec0e368bb2021c50 #v6
+        uses: step-security/create-pull-request@50c103da2b9ca12cd5bc013fc6931051a5aa872b # v8.1.1
         with:
           token: ${{ secrets.AUTOMATION_TOKEN }}
           commit-message: Update checkmarx-ast-cli to ${{ steps.checkmarx-ast-cli.outputs.release_tag }}

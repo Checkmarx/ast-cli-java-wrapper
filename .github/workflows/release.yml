@@ -16,6 +16,11 @@ on:
         description: 'Version of the CLI to bundle'
         required: false
         type: string
+      publish:
+        description: 'Publish package to Maven Central'
+        required: false
+        default: false
+        type: boolean
   workflow_call:
     inputs:
       tag:
@@ -31,25 +36,47 @@ on:
         description: 'Version of the CLI to bundle'
         required: false
         type: string
+      publish:
+        description: 'Publish package to Maven Central'
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      MAVEN_GPG_PASSPHRASE:
+        required: true
+      MAVEN_GPG_PRIVATE_KEY:
+        required: true
+      OSSRH_TOKEN:
+        required: true
+      OSSRH_USERNAME:
+        required: true
+
+permissions:
+  contents: read
 
 jobs:
   release:
+    permissions:
+      id-token: write
+      contents: write
     runs-on: cx-public-ubuntu-x64
     outputs:
       CLI_VERSION: ${{ steps.extract_cli_version.outputs.CLI_VERSION }}
       TAG_NAME: ${{ steps.set_tag_name.outputs.TAG_NAME }}
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: true
 
       - name: Download CLI
         if: inputs.cliTag
+        env:
+          INPUT_CLI_TAG: ${{ inputs.cliTag }}
         run: |
           chmod +x ./.github/scripts/update_cli.sh
-          ./.github/scripts/update_cli.sh ${{ inputs.cliTag }}
+          ./.github/scripts/update_cli.sh "$INPUT_CLI_TAG"
 
       - name: Extract CLI version
         id: extract_cli_version
@@ -57,7 +84,7 @@ jobs:
           CLI_VERSION=$(./src/main/resources/cx-linux version | grep -Eo '^[0-9]+\.[0-9]+\.[0-9]+')
           echo "CLI version being packed is $CLI_VERSION"
           echo "CLI_VERSION=$CLI_VERSION" >> $GITHUB_ENV
-          echo "::set-output name=CLI_VERSION::$CLI_VERSION"
+          echo "CLI_VERSION=$CLI_VERSION" >> $GITHUB_OUTPUT
 
       - name: Check if CLI version is latest
         if: ${{ github.event.inputs.dev == 'false' && !github.event.inputs.cliTag && github.ref == 'refs/heads/main' }}
@@ -76,27 +103,19 @@ jobs:
 
       - name: Tag
         id: set_tag_name
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          echo ${{ inputs.tag }}
-          tag=${{ inputs.tag }}
-          echo "RELEASE_VERSION=${{ inputs.tag }}" >> $GITHUB_ENV
-          message='${{ inputs.tag }}'
+          echo "$INPUT_TAG"
+          echo "RELEASE_VERSION=$INPUT_TAG" >> $GITHUB_ENV
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git tag -a "${tag}" -m "${message}"
-          git push origin "${tag}"
-          echo "::set-output name=TAG_NAME::${{ inputs.tag }}"
-
-      - name: Cache local Maven repository
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          git tag -a "$INPUT_TAG" -m "$INPUT_TAG"
+          git push origin "$INPUT_TAG"
+          echo "TAG_NAME=$INPUT_TAG" >> $GITHUB_OUTPUT
 
       - name: Set up Maven Central Repository
-        uses: actions/setup-java@2dfa2011c5b2a0f1489bf9e433881c92c1631f88 # v4.3.0
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '11'
           distribution: 'temurin'
@@ -106,51 +125,59 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
+      - name: Configure echo mirror for dependency resolution
+        run: |
+          sed -i 's|</settings>|<mirrors><mirror><id>echo</id><mirrorOf>central</mirrorOf><url>https://maven.echohq.com</url></mirror></mirrors></settings>|' ~/.m2/settings.xml
+
       - name: Update the POM version.
-        run: mvn -B versions:set -DnewVersion='${{ env.RELEASE_VERSION }}' --file pom.xml -DskipTests
+        run: mvn -B versions:set -DnewVersion="$RELEASE_VERSION" --file pom.xml -DskipTests
 
       - name: Build artifactId property
+        env:
+          INPUT_DEV: ${{ inputs.dev }}
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
           prop=''
-          if [ ${{ inputs.dev }} = true ] && ![ "${{ inputs.tag }}" = "1.0.0-SNAPSHOT" ]; then
+          if [ "$INPUT_DEV" = "true" ] && [ "$INPUT_TAG" != "1.0.0-SNAPSHOT" ]; then
             prop='-Dast.wrapper.id=ast-cli-java-wrapper-dev'
           fi
           echo "AID_PROP=${prop}" >> $GITHUB_ENV
 
       - name: Publish package
-        run: mvn --batch-mode deploy -DskipTests ${{ env.AID_PROP }}
+        if: inputs.publish == true
+        run: mvn --batch-mode deploy -DskipTests $AID_PROP
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
       - name: Release
-        uses: softprops/action-gh-release@a6c7483a42ee9d5daced968f6c217562cd680f7f #v2
+        uses: step-security/action-gh-release@277bfa82abcfdb73e5bbb19e213fd76532ee2be5 # v3.0.0
         with:
           generate_release_notes: true
           tag_name: ${{ inputs.tag }}
           prerelease: ${{ inputs.dev }}
 
-  notify:
-    if: inputs.dev == false
-    needs: release
-    uses: Checkmarx/plugins-release-workflow/.github/workflows/release-notify.yml@main
-    with:
-      product_name: Java Wrapper
-      release_version: ${{ needs.release.outputs.TAG_NAME }}
-      cli_release_version: ${{ needs.release.outputs.CLI_VERSION }}
-      release_author: "Sypher Team"
-      release_url: https://github.com/Checkmarx/ast-cli-java-wrapper/releases/tag/${{ needs.release.outputs.TAG_NAME }}
-      jira_product_name: JAVA_WRAPPER
-    secrets: inherit
+  # notify:
+  #   if: inputs.dev == false
+  #   needs: release
+  #   uses: Checkmarx/plugins-release-workflow/.github/workflows/release-notify.yml@main
+  #   with:
+  #     product_name: Java Wrapper
+  #     release_version: ${{ needs.release.outputs.TAG_NAME }}
+  #     cli_release_version: ${{ needs.release.outputs.CLI_VERSION }}
+  #     release_author: "Sypher Team"
+  #     release_url: https://github.com/Checkmarx/ast-cli-java-wrapper/releases/tag/${{ needs.release.outputs.TAG_NAME }}
+  #     jira_product_name: JAVA_WRAPPER
+  #   secrets: inherit
 
-  dispatch_auto_release:
-    name: Update Jenkins/Jetbrains/Eclipse Extensions With new Wrapper Version
-    if: inputs.dev == false
-    needs: notify
-    uses: Checkmarx/plugins-release-workflow/.github/workflows/dispatch-workflow.yml@main
-    with:
-      cli_version: ${{ needs.release.outputs.CLI_VERSION }}
-      is_cli_release: false
-      is_java_release: true
-    secrets: inherit
+  # dispatch_auto_release:
+  #   name: Update Jenkins/Jetbrains/Eclipse Extensions With new Wrapper Version
+  #   if: inputs.dev == false
+  #   needs: notify
+  #   uses: Checkmarx/plugins-release-workflow/.github/workflows/dispatch-workflow.yml@main
+  #   with:
+  #     cli_version: ${{ needs.release.outputs.CLI_VERSION }}
+  #     is_cli_release: false
+  #     is_java_release: true
+  #   secrets: inherit
