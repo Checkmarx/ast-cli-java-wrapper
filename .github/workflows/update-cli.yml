@@ -3,11 +3,16 @@ name: Update checkmarx ast cli
 on:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
 jobs:
   update_cli:
+    name: Update CLI
     runs-on: cx-public-ubuntu-x64
     steps:
       - name: Checkout

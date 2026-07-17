@@ -2,11 +2,16 @@ name: AST Java Wrapper CI
 
 on: [ pull_request ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   integration-tests:
+    name: Integration Tests
     permissions:
       contents: read
     runs-on: cx-public-ubuntu-x64

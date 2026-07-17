@@ -53,14 +53,19 @@ on:
       ECHO_LIBRARIES_ACCESS_KEY:
         required: true
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
 jobs:
   release:
+    name: Release
     permissions:
-      id-token: write
-      contents: write
+      id-token: write  # for Maven Central publishing via OIDC
+      contents: write  # for git push tag and creating GitHub release
     runs-on: cx-public-ubuntu-x64
     outputs:
       CLI_VERSION: ${{ steps.extract_cli_version.outputs.CLI_VERSION }}
@@ -69,8 +74,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: true
+          persist-credentials: false
 
       - name: Download CLI
         if: inputs.cliTag
@@ -107,11 +112,14 @@ jobs:
         id: set_tag_name
         env:
           INPUT_TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
           echo "$INPUT_TAG"
           echo "RELEASE_VERSION=$INPUT_TAG" >> $GITHUB_ENV
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${REPO}"
           git tag -a "$INPUT_TAG" -m "$INPUT_TAG"
           git push origin "$INPUT_TAG"
           echo "TAG_NAME=$INPUT_TAG" >> $GITHUB_OUTPUT

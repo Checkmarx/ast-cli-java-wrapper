@@ -6,20 +6,26 @@ on:
   #   branches:
   #     - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
 jobs:
   delete_tag:
+    name: Delete Tag
     permissions:
-      contents: write
+      contents: write  # for gh release delete to remove tags and releases
     runs-on: cx-public-ubuntu-x64
     steps:
       - name: Delete release and tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          gh release delete "1.0.0-SNAPSHOT" --yes --cleanup-tag --repo ${{ github.repository }} || true
+          gh release delete "1.0.0-SNAPSHOT" --yes --cleanup-tag --repo "${GH_REPO}" || true
 
   nightly:
     needs: delete_tag
