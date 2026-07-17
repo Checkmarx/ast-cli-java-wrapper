@@ -10,8 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  integration-tests:
-    name: Integration Tests
+  integration-tests: # zizmor: ignore[anonymous-definition]
     permissions:
       contents: read
     runs-on: cx-public-ubuntu-x64
