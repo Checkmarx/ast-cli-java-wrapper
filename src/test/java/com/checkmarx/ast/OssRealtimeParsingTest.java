@@ -6,8 +6,6 @@ import org.junit.jupiter.api.*;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -17,10 +15,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class OssRealtimeParsingTest extends BaseTest {
 
-    private boolean isCliConfigured() {
-        return Optional.ofNullable(getConfig().getPathToExecutable()).filter(s -> !s.isEmpty()).isPresent();
-    }
-
     /**
      * Tests basic OSS realtime scan functionality on pom.xml.
      * Verifies that the scan returns a valid results object with detected Maven dependencies.
@@ -28,7 +22,6 @@ class OssRealtimeParsingTest extends BaseTest {
     @Test
     @DisplayName("Basic OSS scan on pom.xml returns Maven dependencies")
     void basicOssRealtimeScan() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
 
         OssRealtimeResults results = wrapper.ossRealtimeScan("pom.xml", "");
 
@@ -49,7 +42,6 @@ class OssRealtimeParsingTest extends BaseTest {
     @Test
     @DisplayName("OSS scan with ignore file filters packages correctly")
     void ossRealtimeScanWithIgnoreFile() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
         String ignoreFile = "src/test/resources/ignored-packages.json";
         Assumptions.assumeTrue(Files.exists(Paths.get(ignoreFile)), "Ignore file not found - cannot test ignore functionality");
 
@@ -69,7 +61,6 @@ class OssRealtimeParsingTest extends BaseTest {
     @Test
     @DisplayName("Display detected package names for diagnostic purposes")
     void diagnosticPackageNames() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
 
         OssRealtimeResults results = wrapper.ossRealtimeScan("pom.xml", "");
         assertFalse(results.getPackages().isEmpty(), "Should have packages for diagnostic");
@@ -91,7 +82,6 @@ class OssRealtimeParsingTest extends BaseTest {
     @Test
     @DisplayName("Ignore file excludes detected packages correctly")
     void ignoreFileExcludesPackages() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
         String ignoreFile = "src/test/resources/ignored-packages.json";
         Assumptions.assumeTrue(Files.exists(Paths.get(ignoreFile)), "Ignore file not found - cannot test ignore functionality");
 
@@ -125,7 +115,6 @@ class OssRealtimeParsingTest extends BaseTest {
     @Test
     @DisplayName("Repeated OSS scans produce consistent results")
     void ossRealtimeScanConsistency() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
 
         OssRealtimeResults firstScan = wrapper.ossRealtimeScan("pom.xml", "");
         OssRealtimeResults secondScan = wrapper.ossRealtimeScan("pom.xml", "");
@@ -141,7 +130,6 @@ class OssRealtimeParsingTest extends BaseTest {
     @Test
     @DisplayName("Package domain objects are properly mapped from scan results")
     void packageDomainObjectMapping() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
 
         OssRealtimeResults results = wrapper.ossRealtimeScan("pom.xml", "");
         assertFalse(results.getPackages().isEmpty(), "Should have packages to validate mapping");

@@ -40,7 +40,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.21.1</version>
+            <version>2.22.0</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -211,14 +211,32 @@
         </plugins>
     </build>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>echo-repo</id>
+            <url>https://maven.echohq.com</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <distributionManagement>
         <repository>
-            <id>central</id>
-            <url>https://central.sonatype.com/api/v1/publish</url>
+            <id>echo-repo</id>
+            <url>https://maven.echohq.com</url>
         </repository>
     </distributionManagement>
 
+    <repositories>
+        <repository>
+            <id>echo-repo</id>
+            <url>https://maven.echohq.com</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <licenses>
         <license>
