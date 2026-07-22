@@ -2,11 +2,15 @@ name: AST Java Wrapper CI
 
 on: [ pull_request ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
-  integration-tests:
+  integration-tests: # zizmor: ignore[anonymous-definition]
     permissions:
       contents: read
     runs-on: cx-public-ubuntu-x64
@@ -16,6 +20,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           lfs: true
+          persist-credentials: false
 
       - name: Install Git LFS
         run: |
@@ -34,7 +39,28 @@ jobs:
 
       - name: Configure echo mirror for dependency resolution
         run: |
-          sed -i 's|</settings>|<mirrors><mirror><id>echo</id><mirrorOf>central</mirrorOf><url>https://maven.echohq.com</url></mirror></mirrors></settings>|' ~/.m2/settings.xml
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <settings>
+            <mirrors>
+              <mirror>
+                <id>echo-repo</id>
+                <mirrorOf>*</mirrorOf>
+                <url>https://maven.echohq.com</url>
+              </mirror>
+            </mirrors>
+            <servers>
+              <server>
+                <id>echo-repo</id>
+                <username></username>
+                <password>${ECHO_LIBRARIES_ACCESS_KEY}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+        env:
+          ECHO_LIBRARIES_ACCESS_KEY: ${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}
 
       - name: Check existence of cx-linux binary
         run: |
