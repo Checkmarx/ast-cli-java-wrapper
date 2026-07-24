@@ -20,6 +20,7 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CxWrapperRealtimeScanTest")
@@ -58,10 +59,10 @@ class CxWrapperRealtimeScanTest {
     @DisplayName("kicsRealtimeScan throws IOException on network error")
     void testKicsRealtimeScan_NetworkError() throws Exception {
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
-            mockedExecution.when(() -> Execution.executeCommand(any(), any(), any()))
+            mockedExecution.when(() -> Execution.executeCommand(any(), any(), any(Function.class)))
                 .thenThrow(new IOException("Network timeout"));
 
-            assertThrows(IOException.class, () -> subject.kicsRealtimeScan("/app", null, null));
+            assertThrows(IOException.class, () -> subject.kicsRealtimeScan("/app", "", null));
         }
     }
 
@@ -69,10 +70,10 @@ class CxWrapperRealtimeScanTest {
     @DisplayName("kicsRealtimeScan throws CxException on execution error")
     void testKicsRealtimeScan_ExecutionError() throws Exception {
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
-            mockedExecution.when(() -> Execution.executeCommand(any(), any(), any()))
+            mockedExecution.when(() -> Execution.executeCommand(any(), any(), any(Function.class)))
                 .thenThrow(new CxException(500, "Internal server error"));
 
-            assertThrows(CxException.class, () -> subject.kicsRealtimeScan("/app", null, null));
+            assertThrows(CxException.class, () -> subject.kicsRealtimeScan("/app", "", null));
         }
     }
 
@@ -318,7 +319,7 @@ class CxWrapperRealtimeScanTest {
     void testResults_ValidScanId() throws Exception {
         String testScanId = "3f6a5b2c-1d4e-4f8a-9c0b-7e2d1a3f5c8e";
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
-            mockedExecution.when(() -> Execution.executeCommand(any(), any(), any()))
+            mockedExecution.when(() -> Execution.executeCommand(any(), any(), anyString(), anyString()))
                 .thenThrow(new IOException("Failed to retrieve results"));
 
             assertThrows(IOException.class, () ->
@@ -331,7 +332,7 @@ class CxWrapperRealtimeScanTest {
     void testResults_NetworkError() throws Exception {
         String testScanId = "3f6a5b2c-1d4e-4f8a-9c0b-7e2d1a3f5c8e";
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
-            mockedExecution.when(() -> Execution.executeCommand(any(), any(), any()))
+            mockedExecution.when(() -> Execution.executeCommand(any(), any(), anyString(), anyString()))
                 .thenThrow(new IOException("Connection lost"));
 
             assertThrows(IOException.class, () ->
@@ -344,7 +345,7 @@ class CxWrapperRealtimeScanTest {
     void testResults_WithAgent() throws Exception {
         String testScanId = "3f6a5b2c-1d4e-4f8a-9c0b-7e2d1a3f5c8e";
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
-            mockedExecution.when(() -> Execution.executeCommand(any(), any(), any()))
+            mockedExecution.when(() -> Execution.executeCommand(any(), any(), anyString(), anyString()))
                 .thenThrow(new CxException(500, "Server error"));
 
             assertThrows(CxException.class, () ->
@@ -357,7 +358,7 @@ class CxWrapperRealtimeScanTest {
     void testResultsSummary_ValidScanId() throws Exception {
         String testScanId = "3f6a5b2c-1d4e-4f8a-9c0b-7e2d1a3f5c8e";
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
-            mockedExecution.when(() -> Execution.executeCommand(any(), any(), any()))
+            mockedExecution.when(() -> Execution.executeCommand(any(), any(), anyString(), anyString()))
                 .thenThrow(new IOException("Failed to retrieve results summary"));
 
             assertThrows(IOException.class, () ->
@@ -370,7 +371,7 @@ class CxWrapperRealtimeScanTest {
     void testResultsSummary_Error() throws Exception {
         String testScanId = "3f6a5b2c-1d4e-4f8a-9c0b-7e2d1a3f5c8e";
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
-            mockedExecution.when(() -> Execution.executeCommand(any(), any(), any()))
+            mockedExecution.when(() -> Execution.executeCommand(any(), any(), anyString(), anyString()))
                 .thenThrow(new CxException(503, "Service unavailable"));
 
             assertThrows(CxException.class, () ->

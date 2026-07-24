@@ -57,7 +57,7 @@ class RealtimeLocationTest {
     @CsvSource({
         "10, 20",
         "5, 10",
-        "100, 100"
+        "100, 101"
     })
     @DisplayName("equals returns false when line differs")
     void testEquals_DifferentLine_ReturnsFalse(int line1, int line2) {

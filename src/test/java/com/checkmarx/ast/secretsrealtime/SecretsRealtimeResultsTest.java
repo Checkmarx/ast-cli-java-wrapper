@@ -290,5 +290,328 @@ class SecretsRealtimeResultsTest extends BaseTest {
         assertNotNull(results);
         assertTrue(results.getSecrets().isEmpty());
     }
+
+    /* ------------------------------------------------------ */
+    /* Comprehensive Unit Tests for Secret Inner Class      */
+    /* ------------------------------------------------------ */
+
+    /**
+     * Tests Secret constructor with all fields populated.
+     * Verifies that all constructor parameters are correctly assigned to instance variables.
+     */
+    @Test
+    @DisplayName("Secret constructor with all fields initializes correctly")
+    void testSecretConstructor_AllFields() {
+        java.util.List<RealtimeLocation> locations = createLocations(2);
+        SecretsRealtimeResults.Secret secret = new SecretsRealtimeResults.Secret(
+                "AWS Key",
+                "Hardcoded AWS Access Key",
+                "AKIAIOSFODNN7EXAMPLE",
+                "/src/main.py",
+                "CRITICAL",
+                locations
+        );
+        assertEquals("AWS Key", secret.getTitle());
+        assertEquals("Hardcoded AWS Access Key", secret.getDescription());
+        assertEquals("AKIAIOSFODNN7EXAMPLE", secret.getSecretValue());
+        assertEquals("/src/main.py", secret.getFilePath());
+        assertEquals("CRITICAL", secret.getSeverity());
+        assertEquals(2, secret.getLocations().size());
+    }
+
+    /**
+     * Tests Secret constructor with null locations.
+     * Verifies that null locations are converted to empty list instead of staying null.
+     */
+    @Test
+    @DisplayName("Secret constructor with null locations initializes empty list")
+    void testSecretConstructor_NullLocations() {
+        SecretsRealtimeResults.Secret secret = new SecretsRealtimeResults.Secret(
+                "Key", "Desc", "Value", "/path", "HIGH", null
+        );
+        assertNotNull(secret.getLocations());
+        assertTrue(secret.getLocations().isEmpty());
+    }
+
+    /**
+     * Tests Secret constructor with empty locations list.
+     * Verifies that empty location lists are preserved.
+     */
+    @Test
+    @DisplayName("Secret constructor with empty locations list")
+    void testSecretConstructor_EmptyLocations() {
+        java.util.List<RealtimeLocation> emptyLocations = java.util.Collections.emptyList();
+        SecretsRealtimeResults.Secret secret = new SecretsRealtimeResults.Secret(
+                "Key", "Desc", "Value", "/path", "HIGH", emptyLocations
+        );
+        assertNotNull(secret.getLocations());
+        assertTrue(secret.getLocations().isEmpty());
+    }
+
+    /**
+     * Tests Secret constructor with null fields.
+     * Verifies that null field values are preserved (Lombok's @Value allows nulls).
+     */
+    @Test
+    @DisplayName("Secret constructor with null fields preserves nulls")
+    void testSecretConstructor_NullFields() {
+        SecretsRealtimeResults.Secret secret = new SecretsRealtimeResults.Secret(
+                null, null, null, null, null, null
+        );
+        assertNull(secret.getTitle());
+        assertNull(secret.getDescription());
+        assertNull(secret.getSecretValue());
+        assertNull(secret.getFilePath());
+        assertNull(secret.getSeverity());
+        assertNotNull(secret.getLocations()); // Only this is initialized to empty list
+    }
+
+    /**
+     * Tests Secret getters return correct values.
+     * Verifies that all getter methods return the values set in constructor.
+     */
+    @Test
+    @DisplayName("Secret getters return correct values")
+    void testSecretGetters() {
+        SecretsRealtimeResults.Secret secret = new SecretsRealtimeResults.Secret(
+                "Database Password",
+                "Hardcoded DB password found",
+                "postgres://user:pass@localhost",
+                "/config/database.conf",
+                "CRITICAL",
+                java.util.Collections.emptyList()
+        );
+        assertEquals("Database Password", secret.getTitle());
+        assertEquals("Hardcoded DB password found", secret.getDescription());
+        assertEquals("postgres://user:pass@localhost", secret.getSecretValue());
+        assertEquals("/config/database.conf", secret.getFilePath());
+        assertEquals("CRITICAL", secret.getSeverity());
+    }
+
+    /**
+     * Tests Secret equals with identical objects.
+     * Verifies that secrets with same field values are considered equal.
+     */
+    @Test
+    @DisplayName("Secret equals returns true for identical values")
+    void testSecretEquals_Identical() {
+        SecretsRealtimeResults.Secret secret1 = createSecret("Title1", "Value1", "HIGH");
+        SecretsRealtimeResults.Secret secret2 = createSecret("Title1", "Value1", "HIGH");
+        assertEquals(secret1, secret2);
+    }
+
+    /**
+     * Tests Secret equals with different values.
+     * Verifies that secrets with different field values are not equal.
+     */
+    @Test
+    @DisplayName("Secret equals returns false for different values")
+    void testSecretEquals_Different() {
+        SecretsRealtimeResults.Secret secret1 = createSecret("Title1", "Value1", "HIGH");
+        SecretsRealtimeResults.Secret secret2 = createSecret("Title2", "Value2", "MEDIUM");
+        assertNotEquals(secret1, secret2);
+    }
+
+    /**
+     * Tests Secret equals with partial differences.
+     * Verifies that secrets differing in one field are not equal.
+     */
+    @Test
+    @DisplayName("Secret equals false when title differs")
+    void testSecretEquals_DifferentTitle() {
+        SecretsRealtimeResults.Secret secret1 = createSecret("Title1", "Value", "HIGH");
+        SecretsRealtimeResults.Secret secret2 = createSecret("Title2", "Value", "HIGH");
+        assertNotEquals(secret1, secret2);
+    }
+
+    @Test
+    @DisplayName("Secret equals false when severity differs")
+    void testSecretEquals_DifferentSeverity() {
+        SecretsRealtimeResults.Secret secret1 = createSecret("Title", "Value", "HIGH");
+        SecretsRealtimeResults.Secret secret2 = createSecret("Title", "Value", "MEDIUM");
+        assertNotEquals(secret1, secret2);
+    }
+
+    /**
+     * Tests Secret hashCode consistency.
+     * Verifies that equal secrets have the same hash code.
+     */
+    @Test
+    @DisplayName("Secret hashCode is consistent for equal objects")
+    void testSecretHashCode_Consistency() {
+        SecretsRealtimeResults.Secret secret1 = createSecret("AWS", "AKIA", "CRITICAL");
+        SecretsRealtimeResults.Secret secret2 = createSecret("AWS", "AKIA", "CRITICAL");
+        assertEquals(secret1.hashCode(), secret2.hashCode());
+    }
+
+    /**
+     * Tests Secret with multiple locations.
+     * Verifies that secrets can have multiple location entries.
+     */
+    @Test
+    @DisplayName("Secret with multiple locations preserves all locations")
+    void testSecret_MultipleLocations() {
+        java.util.List<RealtimeLocation> locations = createLocations(5);
+        SecretsRealtimeResults.Secret secret = new SecretsRealtimeResults.Secret(
+                "API Key", "Hardcoded key", "sk_live_xxx", "/app.js", "HIGH", locations
+        );
+        assertEquals(5, secret.getLocations().size());
+    }
+
+    /**
+     * Tests Secret with all null string fields but populated locations.
+     * Verifies that locations can exist even when other fields are null.
+     */
+    @Test
+    @DisplayName("Secret with null strings but populated locations")
+    void testSecret_NullFieldsWithLocations() {
+        java.util.List<RealtimeLocation> locations = createLocations(1);
+        SecretsRealtimeResults.Secret secret = new SecretsRealtimeResults.Secret(
+                null, null, null, null, null, locations
+        );
+        assertNull(secret.getTitle());
+        assertNotNull(secret.getLocations());
+        assertEquals(1, secret.getLocations().size());
+    }
+
+    /**
+     * Tests SecretsRealtimeResults constructor with null secrets list.
+     * Verifies that null is converted to empty list.
+     */
+    @Test
+    @DisplayName("SecretsRealtimeResults constructor with null secrets initializes empty list")
+    void testSecretsResultsConstructor_NullSecrets() {
+        SecretsRealtimeResults results = new SecretsRealtimeResults(null);
+        assertNotNull(results.getSecrets());
+        assertTrue(results.getSecrets().isEmpty());
+    }
+
+    /**
+     * Tests SecretsRealtimeResults constructor with empty secrets list.
+     * Verifies that empty list is preserved.
+     */
+    @Test
+    @DisplayName("SecretsRealtimeResults constructor with empty secrets")
+    void testSecretsResultsConstructor_EmptySecrets() {
+        java.util.List<SecretsRealtimeResults.Secret> emptyList = java.util.Collections.emptyList();
+        SecretsRealtimeResults results = new SecretsRealtimeResults(emptyList);
+        assertNotNull(results.getSecrets());
+        assertTrue(results.getSecrets().isEmpty());
+    }
+
+    /**
+     * Tests SecretsRealtimeResults constructor with multiple secrets.
+     * Verifies that all secrets are preserved in the results.
+     */
+    @Test
+    @DisplayName("SecretsRealtimeResults constructor preserves multiple secrets")
+    void testSecretsResultsConstructor_MultipleSecrets() {
+        java.util.List<SecretsRealtimeResults.Secret> secrets = new java.util.ArrayList<>();
+        secrets.add(createSecret("AWS", "AKIA", "HIGH"));
+        secrets.add(createSecret("DB", "postgres", "CRITICAL"));
+        secrets.add(createSecret("API", "sk_", "MEDIUM"));
+
+        SecretsRealtimeResults results = new SecretsRealtimeResults(secrets);
+        assertEquals(3, results.getSecrets().size());
+    }
+
+    /**
+     * Tests fromLine with multiple secrets in array format.
+     * Verifies that arrays with multiple secrets are correctly parsed.
+     */
+    @Test
+    @DisplayName("fromLine parses multiple secrets from JSON array")
+    void testFromLineWithMultipleSecretsArray() {
+        String json = "[" +
+                "{\"Title\":\"AWS Key\",\"SecretValue\":\"AKIA\",\"Severity\":\"HIGH\"}," +
+                "{\"Title\":\"DB Password\",\"SecretValue\":\"pass\",\"Severity\":\"CRITICAL\"}" +
+                "]";
+        SecretsRealtimeResults results = SecretsRealtimeResults.fromLine(json);
+        assertEquals(2, results.getSecrets().size());
+        assertEquals("AWS Key", results.getSecrets().get(0).getTitle());
+        assertEquals("DB Password", results.getSecrets().get(1).getTitle());
+    }
+
+    /**
+     * Tests fromLine with all Secret fields present.
+     * Verifies complete JSON with all fields maps correctly to domain object.
+     */
+    @Test
+    @DisplayName("fromLine with complete Secret fields")
+    void testFromLineWithCompleteSecretFields() {
+        String json = "{" +
+                "\"Title\":\"AWS Access Key\"," +
+                "\"Description\":\"Production access key\"," +
+                "\"SecretValue\":\"AKIAIOSFODNN7EXAMPLE\"," +
+                "\"FilePath\":\"/config/.env\"," +
+                "\"Severity\":\"CRITICAL\"," +
+                "\"Locations\":[{\"Line\":5,\"StartIndex\":10,\"EndIndex\":30}]" +
+                "}";
+        SecretsRealtimeResults results = SecretsRealtimeResults.fromLine(json);
+        SecretsRealtimeResults.Secret secret = results.getSecrets().get(0);
+        assertEquals("AWS Access Key", secret.getTitle());
+        assertEquals("Production access key", secret.getDescription());
+        assertEquals("AKIAIOSFODNN7EXAMPLE", secret.getSecretValue());
+        assertEquals("/config/.env", secret.getFilePath());
+        assertEquals("CRITICAL", secret.getSeverity());
+        assertEquals(1, secret.getLocations().size());
+    }
+
+    /**
+     * Tests fromLine with various severity levels.
+     * Verifies that different severity values are preserved.
+     */
+    @Test
+    @DisplayName("fromLine handles various severity levels")
+    void testFromLineWithVariousSeverities() {
+        String[] severities = {"LOW", "MEDIUM", "HIGH", "CRITICAL"};
+        for (String severity : severities) {
+            String json = "{\"Title\":\"Secret\",\"Severity\":\"" + severity + "\"}";
+            SecretsRealtimeResults results = SecretsRealtimeResults.fromLine(json);
+            assertEquals(severity, results.getSecrets().get(0).getSeverity());
+        }
+    }
+
+    /**
+     * Tests fromLine with special characters in secret value.
+     * Verifies that special characters in secret values are preserved.
+     */
+    @Test
+    @DisplayName("fromLine handles special characters in secret value")
+    void testFromLineWithSpecialCharacters() {
+        String json = "{" +
+                "\"Title\":\"Connection String\"," +
+                "\"SecretValue\":\"user=admin&pass=P@ssw0rd!#$%^*()\"" +
+                "}";
+        SecretsRealtimeResults results = SecretsRealtimeResults.fromLine(json);
+        assertEquals("user=admin&pass=P@ssw0rd!#$%^*()", results.getSecrets().get(0).getSecretValue());
+    }
+
+    /**
+     * Tests fromLine with whitespace-only fields.
+     * Verifies that whitespace-only strings are preserved as-is (not treated as null).
+     */
+    @Test
+    @DisplayName("fromLine preserves whitespace in fields")
+    void testFromLineWithWhitespaceFields() {
+        String json = "{\"Title\":\"   \",\"Description\":\"\\t\\n\"}";
+        SecretsRealtimeResults results = SecretsRealtimeResults.fromLine(json);
+        SecretsRealtimeResults.Secret secret = results.getSecrets().get(0);
+        assertEquals("   ", secret.getTitle());
+    }
+
+    // ===== Helper Methods =====
+
+    private SecretsRealtimeResults.Secret createSecret(String title, String secretValue, String severity) {
+        return new SecretsRealtimeResults.Secret(title, "Description", secretValue, "/path", severity, null);
+    }
+
+    private java.util.List<RealtimeLocation> createLocations(int count) {
+        java.util.List<RealtimeLocation> locations = new java.util.ArrayList<>();
+        for (int i = 1; i <= count; i++) {
+            locations.add(new RealtimeLocation(i, i * 5, i * 10));
+        }
+        return locations;
+    }
 }
 

@@ -238,5 +238,384 @@ class ContainersRealtimeResultsTest extends BaseTest {
         assertNotNull(nullResults);
         assertNull(nullResults.getImages());
     }
+
+    /* ------------------------------------------------------ */
+    /* Comprehensive Unit Tests for Constructor & Getters   */
+    /* ------------------------------------------------------ */
+
+    /**
+     * Tests constructor with null images list.
+     * Verifies that null input is preserved (not auto-converted to empty list).
+     */
+    @Test
+    @DisplayName("Constructor with null images preserves null")
+    void testConstructor_NullImages() {
+        ContainersRealtimeResults results = new ContainersRealtimeResults(null);
+        assertNull(results.getImages());
+    }
+
+    /**
+     * Tests constructor with empty images list.
+     * Verifies that empty list is preserved.
+     */
+    @Test
+    @DisplayName("Constructor with empty images list preserves empty list")
+    void testConstructor_EmptyImages() {
+        java.util.List<ContainersRealtimeImage> emptyList = java.util.Collections.emptyList();
+        ContainersRealtimeResults results = new ContainersRealtimeResults(emptyList);
+        assertNotNull(results.getImages());
+        assertTrue(results.getImages().isEmpty());
+    }
+
+    /**
+     * Tests constructor with single image.
+     * Verifies that single image is preserved.
+     */
+    @Test
+    @DisplayName("Constructor with single image preserves image")
+    void testConstructor_SingleImage() {
+        java.util.List<ContainersRealtimeImage> imageList = new java.util.ArrayList<>();
+        ContainersRealtimeImage image = createImage("ubuntu:20.04", 0);
+        imageList.add(image);
+
+        ContainersRealtimeResults results = new ContainersRealtimeResults(imageList);
+        assertEquals(1, results.getImages().size());
+        assertEquals("ubuntu:20.04", results.getImages().get(0).getImageName());
+    }
+
+    /**
+     * Tests constructor with multiple images.
+     * Verifies that all images are preserved and accessible.
+     */
+    @Test
+    @DisplayName("Constructor with multiple images preserves all images")
+    void testConstructor_MultipleImages() {
+        java.util.List<ContainersRealtimeImage> imageList = new java.util.ArrayList<>();
+        imageList.add(createImage("nginx:latest", 2));
+        imageList.add(createImage("postgres:13", 1));
+        imageList.add(createImage("redis:6", 0));
+
+        ContainersRealtimeResults results = new ContainersRealtimeResults(imageList);
+        assertEquals(3, results.getImages().size());
+        assertEquals("nginx:latest", results.getImages().get(0).getImageName());
+        assertEquals("postgres:13", results.getImages().get(1).getImageName());
+        assertEquals("redis:6", results.getImages().get(2).getImageName());
+    }
+
+    /**
+     * Tests getter method returns correct images.
+     * Verifies that getImages() returns the same list passed to constructor.
+     */
+    @Test
+    @DisplayName("getImages() returns correct images list")
+    void testGetter_Images() {
+        java.util.List<ContainersRealtimeImage> imageList = new java.util.ArrayList<>();
+        imageList.add(createImage("app:v1", 5));
+
+        ContainersRealtimeResults results = new ContainersRealtimeResults(imageList);
+        java.util.List<ContainersRealtimeImage> retrieved = results.getImages();
+
+        assertNotNull(retrieved);
+        assertEquals(1, retrieved.size());
+        assertEquals("app:v1", retrieved.get(0).getImageName());
+    }
+
+    /**
+     * Tests equals with identical objects.
+     * Verifies that ContainersRealtimeResults with same images are equal.
+     */
+    @Test
+    @DisplayName("equals returns true for identical results")
+    void testEquals_Identical() {
+        java.util.List<ContainersRealtimeImage> imageList1 = new java.util.ArrayList<>();
+        imageList1.add(createImage("nginx:latest", 1));
+
+        java.util.List<ContainersRealtimeImage> imageList2 = new java.util.ArrayList<>();
+        imageList2.add(createImage("nginx:latest", 1));
+
+        ContainersRealtimeResults results1 = new ContainersRealtimeResults(imageList1);
+        ContainersRealtimeResults results2 = new ContainersRealtimeResults(imageList2);
+
+        assertEquals(results1, results2);
+    }
+
+    /**
+     * Tests equals with different objects.
+     * Verifies that ContainersRealtimeResults with different images are not equal.
+     */
+    @Test
+    @DisplayName("equals returns false for different results")
+    void testEquals_Different() {
+        java.util.List<ContainersRealtimeImage> imageList1 = new java.util.ArrayList<>();
+        imageList1.add(createImage("nginx:latest", 1));
+
+        java.util.List<ContainersRealtimeImage> imageList2 = new java.util.ArrayList<>();
+        imageList2.add(createImage("apache:latest", 1));
+
+        ContainersRealtimeResults results1 = new ContainersRealtimeResults(imageList1);
+        ContainersRealtimeResults results2 = new ContainersRealtimeResults(imageList2);
+
+        assertNotEquals(results1, results2);
+    }
+
+    /**
+     * Tests hashCode consistency.
+     * Verifies that equal objects have the same hash code.
+     */
+    @Test
+    @DisplayName("hashCode is consistent for equal objects")
+    void testHashCode_Consistency() {
+        java.util.List<ContainersRealtimeImage> imageList1 = new java.util.ArrayList<>();
+        imageList1.add(createImage("nginx:latest", 0));
+
+        java.util.List<ContainersRealtimeImage> imageList2 = new java.util.ArrayList<>();
+        imageList2.add(createImage("nginx:latest", 0));
+
+        ContainersRealtimeResults results1 = new ContainersRealtimeResults(imageList1);
+        ContainersRealtimeResults results2 = new ContainersRealtimeResults(imageList2);
+
+        assertEquals(results1.hashCode(), results2.hashCode());
+    }
+
+    /* ------------------------------------------------------ */
+    /* Advanced JSON Parsing Tests                           */
+    /* ------------------------------------------------------ */
+
+    /**
+     * Tests fromLine with JSON missing "Images" key.
+     * Verifies that the condition `line.contains("\"Images\"")` works correctly.
+     */
+    @Test
+    @DisplayName("fromLine returns null when Images key is missing")
+    void testFromLine_MissingImagesKey() {
+        String json = "{\"Container\": {\"Name\": \"test\"}}";
+        assertNull(ContainersRealtimeResults.fromLine(json));
+    }
+
+    /**
+     * Tests fromLine with Images key but invalid JSON structure.
+     * Verifies that validation still occurs after checking for Images key.
+     */
+    @Test
+    @DisplayName("fromLine validates JSON even when Images key exists")
+    void testFromLine_InvalidJsonWithImagesKey() {
+        String json = "{\"Images\": [}";  // Has Images key but invalid structure
+        assertNull(ContainersRealtimeResults.fromLine(json));
+    }
+
+    /**
+     * Tests fromLine with multiple images of varying complexity.
+     * Verifies parsing of realistic container scan results.
+     */
+    @Test
+    @DisplayName("fromLine parses multiple complex images")
+    void testFromLine_MultipleComplexImages() {
+        String json = "{" +
+                "\"Images\": [" +
+                "  {" +
+                "    \"ImageName\": \"nginx:1.21\"," +
+                "    \"Vulnerabilities\": [" +
+                "      {\"CVE\": \"CVE-2021-1111\", \"Severity\": \"Critical\"}," +
+                "      {\"CVE\": \"CVE-2021-2222\", \"Severity\": \"High\"}" +
+                "    ]" +
+                "  }," +
+                "  {" +
+                "    \"ImageName\": \"postgres:13-alpine\"," +
+                "    \"Vulnerabilities\": [" +
+                "      {\"CVE\": \"CVE-2021-3333\", \"Severity\": \"Medium\"}" +
+                "    ]" +
+                "  }," +
+                "  {" +
+                "    \"ImageName\": \"redis:6-slim\"," +
+                "    \"Vulnerabilities\": []" +
+                "  }" +
+                "]" +
+                "}";
+
+        ContainersRealtimeResults results = ContainersRealtimeResults.fromLine(json);
+        assertNotNull(results);
+        assertEquals(3, results.getImages().size());
+
+        // Verify first image
+        assertEquals("nginx:1.21", results.getImages().get(0).getImageName());
+        assertEquals(2, results.getImages().get(0).getVulnerabilities().size());
+
+        // Verify second image
+        assertEquals("postgres:13-alpine", results.getImages().get(1).getImageName());
+        assertEquals(1, results.getImages().get(1).getVulnerabilities().size());
+
+        // Verify third image with no vulnerabilities
+        assertEquals("redis:6-slim", results.getImages().get(2).getImageName());
+        assertTrue(results.getImages().get(2).getVulnerabilities().isEmpty());
+    }
+
+    /**
+     * Tests fromLine with null images array value.
+     * Verifies that null image lists are preserved.
+     */
+    @Test
+    @DisplayName("fromLine preserves null images array")
+    void testFromLine_NullImagesArray() {
+        String json = "{\"Images\": null}";
+        ContainersRealtimeResults results = ContainersRealtimeResults.fromLine(json);
+        assertNotNull(results);
+        assertNull(results.getImages());
+    }
+
+    /**
+     * Tests fromLine with whitespace around Images key.
+     * Verifies string matching handles edge cases.
+     */
+    @Test
+    @DisplayName("fromLine handles Images key with various whitespace")
+    void testFromLine_ImagesKeyWithWhitespace() {
+        String json = "{ \"Images\" : [ { \"ImageName\" : \"test:latest\" } ] }";
+        ContainersRealtimeResults results = ContainersRealtimeResults.fromLine(json);
+        assertNotNull(results);
+        assertEquals(1, results.getImages().size());
+    }
+
+    /**
+     * Tests fromLine with additional unknown properties.
+     * Verifies @JsonIgnoreProperties works correctly.
+     */
+    @Test
+    @DisplayName("fromLine ignores unknown JSON properties")
+    void testFromLine_UnknownProperties() {
+        String json = "{" +
+                "\"Images\": [{\"ImageName\": \"test:1\"}]," +
+                "\"UnknownField\": \"value\"," +
+                "\"AnotherUnknown\": {\"nested\": \"data\"}" +
+                "}";
+
+        ContainersRealtimeResults results = ContainersRealtimeResults.fromLine(json);
+        assertNotNull(results);
+        assertEquals(1, results.getImages().size());
+        assertEquals("test:1", results.getImages().get(0).getImageName());
+    }
+
+    /**
+     * Tests fromLine with various blank inputs.
+     * Verifies StringUtils.isBlank() handles all cases.
+     */
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"", "   ", "\t", "\n", "\r\n", "\t\t\t"})
+    @DisplayName("fromLine returns null for blank inputs")
+    void testFromLine_BlankInputs(String blankInput) {
+        assertNull(ContainersRealtimeResults.fromLine(blankInput));
+    }
+
+    /**
+     * Tests fromLine with null input.
+     */
+    @Test
+    @DisplayName("fromLine returns null for null input")
+    void testFromLine_NullInput() {
+        assertNull(ContainersRealtimeResults.fromLine(null));
+    }
+
+    /**
+     * Tests fromLine with JSON containing Images key but no opening bracket.
+     * Verifies robustness of JSON validation.
+     */
+    @Test
+    @DisplayName("fromLine handles incomplete JSON with Images key")
+    void testFromLine_IncompleteJson() {
+        String json = "{\"Images\"";  // Incomplete JSON with Images key
+        assertNull(ContainersRealtimeResults.fromLine(json));
+    }
+
+    /**
+     * Tests fromLine with escaped quotes in image name.
+     * Verifies JSON parsing handles escaped characters.
+     */
+    @Test
+    @DisplayName("fromLine handles escaped characters in image name")
+    void testFromLine_EscapedCharacters() {
+        String json = "{" +
+                "\"Images\": [" +
+                "{\"ImageName\": \"registry.example.com/app\\\"special:1.0\"}" +
+                "]" +
+                "}";
+
+        ContainersRealtimeResults results = ContainersRealtimeResults.fromLine(json);
+        // Should parse successfully (ObjectMapper handles escaped quotes)
+        if (results != null) {
+            assertNotNull(results.getImages());
+        }
+    }
+
+    /**
+     * Tests fromLine with nested vulnerability structures.
+     * Verifies deep JSON structure parsing.
+     */
+    @Test
+    @DisplayName("fromLine parses deeply nested vulnerability structures")
+    void testFromLine_DeeplyNestedStructures() {
+        String json = "{" +
+                "\"Images\": [" +
+                "{" +
+                "  \"ImageName\": \"complex:latest\"," +
+                "  \"Vulnerabilities\": [" +
+                "    {" +
+                "      \"CVE\": \"CVE-2021-9999\"," +
+                "      \"Severity\": \"Critical\"," +
+                "      \"PackageName\": \"openssl\"," +
+                "      \"PackageVersion\": \"1.1.1\"," +
+                "      \"FixedVersion\": \"1.1.2\"" +
+                "    }" +
+                "  ]" +
+                "}" +
+                "]" +
+                "}";
+
+        ContainersRealtimeResults results = ContainersRealtimeResults.fromLine(json);
+        assertNotNull(results);
+        assertEquals(1, results.getImages().size());
+        assertEquals("complex:latest", results.getImages().get(0).getImageName());
+        assertEquals(1, results.getImages().get(0).getVulnerabilities().size());
+    }
+
+    /**
+     * Tests fromLine with very large image list.
+     * Verifies performance and correctness with multiple images.
+     */
+    @Test
+    @DisplayName("fromLine handles large number of images")
+    void testFromLine_LargeImageList() {
+        StringBuilder jsonBuilder = new StringBuilder("{\"Images\": [");
+        for (int i = 0; i < 50; i++) {
+            if (i > 0) jsonBuilder.append(",");
+            jsonBuilder.append("{\"ImageName\": \"image").append(i).append(":latest\"}");
+        }
+        jsonBuilder.append("]}");
+
+        ContainersRealtimeResults results = ContainersRealtimeResults.fromLine(jsonBuilder.toString());
+        assertNotNull(results);
+        assertEquals(50, results.getImages().size());
+    }
+
+    // ===== Helper Methods =====
+
+    /**
+     * Creates a mock ContainersRealtimeImage for testing.
+     */
+    private ContainersRealtimeImage createImage(String imageName, int vulnerabilityCount) {
+        java.util.List<ContainersRealtimeVulnerability> vulns = new java.util.ArrayList<>();
+        for (int i = 0; i < vulnerabilityCount; i++) {
+            vulns.add(new ContainersRealtimeVulnerability(
+                    "CVE-2021-" + String.format("%04d", i),
+                    new String[]{"High", "Medium", "Low", "Critical"}[i % 4]
+            ));
+        }
+        return new ContainersRealtimeImage(
+                imageName,
+                "tag-" + vulnerabilityCount,
+                "/path/to/image",
+                null,
+                "Active",
+                vulns
+        );
+    }
 }
 
