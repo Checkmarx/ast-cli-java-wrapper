@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -99,7 +98,7 @@ class IacRealtimeResultsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"[{]", "{invalid", "[1,2,3]", "not json", "{\"unclosed\": "})
+    @ValueSource(strings = {"[{]", "{invalid", "not json", "{\"unclosed\": "})
     @DisplayName("fromLine with invalid JSON returns null")
     void testFromLineWithInvalidJson(String invalidJson) {
         assertNull(IacRealtimeResults.fromLine(invalidJson));

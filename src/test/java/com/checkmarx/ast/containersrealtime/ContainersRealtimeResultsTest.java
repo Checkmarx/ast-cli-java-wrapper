@@ -1,15 +1,13 @@
 package com.checkmarx.ast.containersrealtime;
 
 import com.checkmarx.ast.BaseTest;
-import com.checkmarx.ast.containersrealtime.ContainersRealtimeImage;
-import com.checkmarx.ast.containersrealtime.ContainersRealtimeResults;
-import com.checkmarx.ast.containersrealtime.ContainersRealtimeVulnerability;
 import com.checkmarx.ast.wrapper.CxException;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,10 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Integration tests use Dockerfile as the scan target and are assumption-guarded for CI/local flexibility.
  */
 class ContainersRealtimeResultsTest extends BaseTest {
-
-    private boolean isCliConfigured() {
-        return Optional.ofNullable(getConfig().getPathToExecutable()).filter(s -> !s.isEmpty()).isPresent();
-    }
 
     /* ------------------------------------------------------ */
     /* Integration tests for Container Realtime scanning     */
@@ -36,7 +30,6 @@ class ContainersRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Basic container scan on Dockerfile returns detected images")
     void basicContainerRealtimeScan() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
         String dockerfilePath = "src/test/resources/Dockerfile";
         Assumptions.assumeTrue(Files.exists(Paths.get(dockerfilePath)), "Dockerfile not found - cannot test container scanning");
 
@@ -62,7 +55,6 @@ class ContainersRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Container scan with ignore file works correctly")
     void containerRealtimeScanWithIgnoreFile() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
         String dockerfilePath = "src/test/resources/Dockerfile";
         String ignoreFile = "src/test/resources/ignored-packages.json";
         Assumptions.assumeTrue(Files.exists(Paths.get(dockerfilePath)) && Files.exists(Paths.get(ignoreFile)),
@@ -89,7 +81,6 @@ class ContainersRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Repeated container scans produce consistent results")
     void containerRealtimeScanConsistency() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
         String dockerfilePath = "src/test/resources/Dockerfile";
         Assumptions.assumeTrue(Files.exists(Paths.get(dockerfilePath)), "Dockerfile not found - cannot test consistency");
 
@@ -115,7 +106,6 @@ class ContainersRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Container domain objects are properly mapped from scan results")
     void containerDomainObjectMapping() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
         String dockerfilePath = "src/test/resources/Dockerfile";
         Assumptions.assumeTrue(Files.exists(Paths.get(dockerfilePath)), "Dockerfile not found - cannot test mapping");
 
@@ -148,14 +138,13 @@ class ContainersRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Container scan throws appropriate exception for non-existent file")
     void containerScanHandlesInvalidPath() {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
 
         // Test with a non-existent file path
         String invalidPath = "src/test/resources/NonExistentDockerfile";
 
         // The CLI should throw a CxException with a meaningful error message for invalid paths
         CxException exception = assertThrows(CxException.class, () ->
-            wrapper.containersRealtimeScan(invalidPath, "")
+                wrapper.containersRealtimeScan(invalidPath, "")
         );
 
         // Verify the exception contains information about the invalid file path

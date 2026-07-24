@@ -74,7 +74,7 @@ class CxWrapperArgumentsTest {
 
     @Test
     void testBuildScanCreateArguments_withEmptyParamsMap() {
-        List<String> args = wrapper.buildScanCreateArguments(Map.of(), "");
+        List<String> args = wrapper.buildScanCreateArguments(new LinkedHashMap<>(), "");
 
         // Core tokens still present even with no params
         assertTrue(args.contains("scan"));
@@ -85,7 +85,7 @@ class CxWrapperArgumentsTest {
 
     @Test
     void testBuildScanCreateArguments_executableIsFirst() {
-        List<String> args = wrapper.buildScanCreateArguments(Map.of(), "");
+        List<String> args = wrapper.buildScanCreateArguments(new LinkedHashMap<>(), "");
         assertEquals(EXECUTABLE, args.get(0));
     }
 

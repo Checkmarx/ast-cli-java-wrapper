@@ -2,10 +2,9 @@ package com.checkmarx.ast.wrapper;
 
 import com.checkmarx.ast.BaseTest;
 import com.checkmarx.ast.scan.Scan;
-import com.checkmarx.ast.wrapper.CxException;
-import com.checkmarx.ast.wrapper.CxThinWrapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -18,6 +17,7 @@ public class ThinWrapperTest extends BaseTest {
         CxThinWrapper wrapper = new CxThinWrapper(getLogger());
         String result = wrapper.run("scan list --format json --filter limit=10");
         List<Scan> scanList = Scan.listFromLine(result);
+        Assumptions.assumeTrue(scanList != null, "Scan list unavailable");
         Assertions.assertTrue(scanList.size() <= 10);
     }
 

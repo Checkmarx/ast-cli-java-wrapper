@@ -2,13 +2,13 @@ package com.checkmarx.ast.secretsrealtime;
 
 import com.checkmarx.ast.BaseTest;
 import com.checkmarx.ast.realtime.RealtimeLocation;
-import com.checkmarx.ast.secretsrealtime.SecretsRealtimeResults;
 import com.checkmarx.ast.wrapper.CxException;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,10 +18,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Integration tests use python-vul-file.py as the scan target and are assumption-guarded for CI/local flexibility.
  */
 class SecretsRealtimeResultsTest extends BaseTest {
-
-    private boolean isCliConfigured() {
-        return Optional.ofNullable(getConfig().getPathToExecutable()).filter(s -> !s.isEmpty()).isPresent();
-    }
 
     /* ------------------------------------------------------ */
     /* Integration tests for Secrets Realtime scanning       */
@@ -35,7 +31,6 @@ class SecretsRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Basic secrets scan on python file returns detected secrets")
     void basicSecretsRealtimeScan() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
         String pythonFile = "src/test/resources/python-vul-file.py";
         Assumptions.assumeTrue(Files.exists(Paths.get(pythonFile)), "Python vulnerable file not found - cannot test secrets scanning");
 
@@ -62,7 +57,6 @@ class SecretsRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Secrets scan with ignore file works correctly")
     void secretsRealtimeScanWithIgnoreFile() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
         String pythonFile = "src/test/resources/python-vul-file.py";
         String ignoreFile = "src/test/resources/ignored-packages.json";
         Assumptions.assumeTrue(Files.exists(Paths.get(pythonFile)) && Files.exists(Paths.get(ignoreFile)),
@@ -87,7 +81,6 @@ class SecretsRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Repeated secrets scans produce consistent results")
     void secretsRealtimeScanConsistency() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
         String pythonFile = "src/test/resources/python-vul-file.py";
         Assumptions.assumeTrue(Files.exists(Paths.get(pythonFile)), "Python file not found - cannot test consistency");
 
@@ -110,7 +103,6 @@ class SecretsRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Secret domain objects are properly mapped from scan results")
     void secretDomainObjectMapping() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
         String pythonFile = "src/test/resources/python-vul-file.py";
         Assumptions.assumeTrue(Files.exists(Paths.get(pythonFile)), "Python file not found - cannot test mapping");
 
@@ -142,7 +134,6 @@ class SecretsRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Secrets scan on clean file returns empty results")
     void secretsScanOnCleanFile() throws Exception {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
         String cleanFile = "src/test/resources/csharp-no-vul.cs";
         Assumptions.assumeTrue(Files.exists(Paths.get(cleanFile)), "Clean C# file not found - cannot test clean scan");
 
@@ -162,7 +153,6 @@ class SecretsRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Secrets scan throws appropriate exception for non-existent file")
     void secretsScanHandlesInvalidPath() {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
 
         // Test with a non-existent file path
         String invalidPath = "src/test/resources/NonExistentFile.py";
@@ -187,7 +177,6 @@ class SecretsRealtimeResultsTest extends BaseTest {
     @Test
     @DisplayName("Secrets scan handles multiple file types correctly")
     void secretsScanMultipleFileTypes() {
-        Assumptions.assumeTrue(isCliConfigured(), "PATH_TO_EXECUTABLE not configured - skipping integration test");
 
         String[] testFiles = {
             "src/test/resources/python-vul-file.py",

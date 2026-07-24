@@ -1,7 +1,8 @@
 package com.checkmarx.ast.wrapper;
 
-import org.junit.jupiter.api.Test;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -415,7 +416,7 @@ class ExecutionTest {
     @Test
     @DisplayName("getOperatingSystemType handles very long string with keyword")
     void testGetOperatingSystemType_WithVeryLongString() {
-        String longString = "a".repeat(1000) + "linux" + "b".repeat(1000);
+        String longString = StringUtils.repeat("a", 1000) + "linux" + StringUtils.repeat("b", 1000);
         assertEquals("linux", Execution.getOperatingSystemType(longString));
     }
 
@@ -703,7 +704,7 @@ class ExecutionTest {
     @Test
     @DisplayName("getOperatingSystemType with extremely long strings containing keyword")
     void testGetOperatingSystemType_ExtremelyLongString() {
-        String veryLong = "prefix".repeat(1000) + "linux" + "suffix".repeat(1000);
+        String veryLong = StringUtils.repeat("prefix", 1000) + "linux" + StringUtils.repeat("suffix", 1000);
         assertEquals("linux", Execution.getOperatingSystemType(veryLong));
     }
 
@@ -776,14 +777,14 @@ class ExecutionTest {
     @Test
     @DisplayName("getOperatingSystemType with keyword at start of very long string")
     void testGetOperatingSystemType_KeywordAtStartVeryLong() {
-        String result = Execution.getOperatingSystemType("linux" + "x".repeat(10000));
+        String result = Execution.getOperatingSystemType("linux" + StringUtils.repeat("x", 10000));
         assertEquals("linux", result);
     }
 
     @Test
     @DisplayName("getOperatingSystemType with keyword at end of very long string")
     void testGetOperatingSystemType_KeywordAtEndVeryLong() {
-        String result = Execution.getOperatingSystemType("x".repeat(10000) + "windows");
+        String result = Execution.getOperatingSystemType(StringUtils.repeat("x", 10000) + "windows");
         assertEquals("windows", result);
     }
 
@@ -1112,7 +1113,7 @@ class ExecutionTest {
     @Test
     @DisplayName("getOperatingSystemType with very long string containing linux")
     void testGetOperatingSystemType_VeryLongString_Matches() {
-        String longString = "A".repeat(1000) + "linux" + "B".repeat(1000);
+        String longString = StringUtils.repeat("A", 1000) + "linux" + StringUtils.repeat("B", 1000);
         assertEquals("linux", Execution.getOperatingSystemType(longString));
     }
 

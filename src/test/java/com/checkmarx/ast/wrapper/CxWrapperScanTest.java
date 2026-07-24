@@ -1,16 +1,12 @@
 package com.checkmarx.ast.wrapper;
 
-import com.checkmarx.ast.scan.Scan;
-import com.checkmarx.ast.results.Results;
+import com.checkmarx.ast.asca.ScanResult;
+import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
 import com.checkmarx.ast.predicate.Predicate;
+import com.checkmarx.ast.remediation.KicsRemediation;
 import com.checkmarx.ast.results.ReportFormat;
 import com.checkmarx.ast.results.result.Node;
-import com.checkmarx.ast.kicsRealtimeResults.KicsRealtimeResults;
-import com.checkmarx.ast.remediation.KicsRemediation;
-import com.checkmarx.ast.containersrealtime.ContainersRealtimeResults;
-import com.checkmarx.ast.ossrealtime.OssRealtimeResults;
-import com.checkmarx.ast.asca.ScanResult;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.checkmarx.ast.scan.Scan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,18 +18,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CxWrapperScanTest")
@@ -1355,7 +1346,7 @@ class CxWrapperScanTest {
     @Test
     @DisplayName("scanCreate with very long project name")
     void testScanCreate_VeryLongProjectName() throws Exception {
-        String longProjectName = "p".repeat(300); // exceeds typical length limits
+        String longProjectName = new String(new char[300]).replace('\0', 'p'); // exceeds typical length limits
         Map<String, String> params = new HashMap<>();
         params.put("projectName", longProjectName);
         params.put("source", ".");
@@ -1611,7 +1602,7 @@ class CxWrapperScanTest {
     @Test
     @DisplayName("scanCreate with very long project name (>255 chars)")
     void testScanCreate_WithVeryLongProjectName() throws Exception {
-        String longName = "A".repeat(300);
+        String longName = new String(new char[300]).replace('\0', 'A');
         Map<String, String> params = new HashMap<>();
         params.put("projectName", longName);
         params.put("source", ".");
@@ -2303,7 +2294,7 @@ class CxWrapperScanTest {
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
             com.checkmarx.ast.tenant.TenantSetting setting = new com.checkmarx.ast.tenant.TenantSetting("OTHER_KEY", "true");
             mockedExecution.when(() -> Execution.executeCommand(anyList(), any(), any(Function.class)))
-                .thenReturn(new ArrayList<>(java.util.List.of(setting)));
+                .thenReturn(new ArrayList<>(java.util.Arrays.asList(setting)));
 
             boolean result = assertDoesNotThrow(() -> subject.ideScansEnabled());
             assertFalse(result, "Should return false when IDE_SCANS_KEY setting not found");
@@ -2316,7 +2307,7 @@ class CxWrapperScanTest {
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
             com.checkmarx.ast.tenant.TenantSetting setting = new com.checkmarx.ast.tenant.TenantSetting("ideScansEnabled", "true");
             mockedExecution.when(() -> Execution.executeCommand(anyList(), any(), any(Function.class)))
-                .thenReturn(new ArrayList<>(java.util.List.of(setting)));
+                .thenReturn(new ArrayList<>(java.util.Arrays.asList(setting)));
 
             boolean result = assertDoesNotThrow(() -> subject.ideScansEnabled());
             assertNotNull(result, "Should return a boolean result");
@@ -2351,7 +2342,7 @@ class CxWrapperScanTest {
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
             com.checkmarx.ast.tenant.TenantSetting setting = new com.checkmarx.ast.tenant.TenantSetting("OTHER_KEY", "true");
             mockedExecution.when(() -> Execution.executeCommand(anyList(), any(), any(Function.class)))
-                .thenReturn(new ArrayList<>(java.util.List.of(setting)));
+                .thenReturn(new ArrayList<>(java.util.Arrays.asList(setting)));
 
             boolean result = assertDoesNotThrow(() -> subject.devAssistEnabled());
             assertFalse(result, "Should return false when DEV_ASSIST_KEY setting not found");
@@ -2364,7 +2355,7 @@ class CxWrapperScanTest {
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
             com.checkmarx.ast.tenant.TenantSetting setting = new com.checkmarx.ast.tenant.TenantSetting("OTHER_KEY", "true");
             mockedExecution.when(() -> Execution.executeCommand(anyList(), any(), any(Function.class)))
-                .thenReturn(new ArrayList<>(java.util.List.of(setting)));
+                .thenReturn(new ArrayList<>(java.util.Arrays.asList(setting)));
 
             boolean result = assertDoesNotThrow(() -> subject.oneAssistEnabled());
             assertFalse(result, "Should return false when ONE_ASSIST_KEY setting not found");
@@ -2377,7 +2368,7 @@ class CxWrapperScanTest {
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
             com.checkmarx.ast.tenant.TenantSetting setting = new com.checkmarx.ast.tenant.TenantSetting("OTHER_KEY", "true");
             mockedExecution.when(() -> Execution.executeCommand(anyList(), any(), any(Function.class)))
-                .thenReturn(new ArrayList<>(java.util.List.of(setting)));
+                .thenReturn(new ArrayList<>(java.util.Arrays.asList(setting)));
 
             boolean result = assertDoesNotThrow(() -> subject.aiMcpServerEnabled());
             assertFalse(result, "Should return false when AI_MCP_SERVER_KEY setting not found");
@@ -2401,7 +2392,7 @@ class CxWrapperScanTest {
         try (MockedStatic<Execution> mockedExecution = Mockito.mockStatic(Execution.class)) {
             com.checkmarx.ast.tenant.TenantSetting setting = new com.checkmarx.ast.tenant.TenantSetting("OTHER_KEY", "true");
             mockedExecution.when(() -> Execution.executeCommand(anyList(), any(), any(Function.class)))
-                .thenReturn(new ArrayList<>(java.util.List.of(setting)));
+                .thenReturn(new ArrayList<>(java.util.Arrays.asList(setting)));
 
             boolean result = assertDoesNotThrow(() -> subject.getTenantSetting("MISSING_KEY"));
             assertFalse(result, "Should return false when setting key not found");
