@@ -1,11 +1,13 @@
-package com.checkmarx.ast;
+package com.checkmarx.ast.ossrealtime;
 
-import com.checkmarx.ast.ossrealtime.OssRealtimeResults;
-import com.checkmarx.ast.ossrealtime.OssRealtimeScanPackage;
-import org.junit.jupiter.api.*;
+import com.checkmarx.ast.BaseTest;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**

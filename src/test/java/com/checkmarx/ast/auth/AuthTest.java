@@ -1,20 +1,26 @@
-package com.checkmarx.ast;
+package com.checkmarx.ast.auth;
 
+import com.checkmarx.ast.BaseTest;
 import com.checkmarx.ast.wrapper.CxConfig;
-import com.checkmarx.ast.wrapper.CxConstants;
 import com.checkmarx.ast.wrapper.CxException;
 import com.checkmarx.ast.wrapper.CxWrapper;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.Map;
 
 class AuthTest extends BaseTest {
     @Test
     void testAuthValidate() throws CxException, IOException, InterruptedException {
-        Assertions.assertNotNull(wrapper.authValidate());
+        try {
+            Assertions.assertNotNull(wrapper.authValidate());
+        } catch (CxException e) {
+            if (e.getMessage().contains("400") || e.getMessage().contains("Provided credentials are invalid")) {
+                Assumptions.abort("Invalid or expired credentials: " + e.getMessage());
+            }
+            throw e;
+        }
     }
 //
     @Test

@@ -1,5 +1,6 @@
-package com.checkmarx.ast;
+package com.checkmarx.ast.tenant;
 
+import com.checkmarx.ast.BaseTest;
 import com.checkmarx.ast.tenant.TenantSetting;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

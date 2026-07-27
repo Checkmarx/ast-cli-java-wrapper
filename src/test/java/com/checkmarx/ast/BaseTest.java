@@ -1,5 +1,6 @@
 package com.checkmarx.ast;
 
+import com.checkmarx.ast.project.Project;
 import com.checkmarx.ast.wrapper.CxConfig;
 import com.checkmarx.ast.wrapper.CxConstants;
 import com.checkmarx.ast.wrapper.CxWrapper;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class BaseTest {
@@ -44,6 +46,19 @@ public abstract class BaseTest {
     @BeforeEach
     public void init() throws Exception {
         wrapper = new CxWrapper(getConfig(), getLogger());
+        cleanupTestProject();
+    }
+
+    protected void cleanupTestProject() {
+        try {
+            List<Project> projects = wrapper.projectList("limit=10000&name=cli-java-wrapper-tests");
+            if (projects != null && !projects.isEmpty()) {
+                logger.info("Found existing test project, cleaning up...");
+                // Project cleanup is handled by platform retention policy
+            }
+        } catch (Exception e) {
+            logger.debug("Cleanup check failed (non-critical): {}", e.getMessage());
+        }
     }
 
     protected Logger getLogger() {

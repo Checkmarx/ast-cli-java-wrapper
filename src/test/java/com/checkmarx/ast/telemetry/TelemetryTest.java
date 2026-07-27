@@ -1,5 +1,6 @@
-package com.checkmarx.ast;
+package com.checkmarx.ast.telemetry;
 
+import com.checkmarx.ast.BaseTest;
 import com.checkmarx.ast.wrapper.CxException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

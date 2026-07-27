@@ -1,5 +1,6 @@
-package com.checkmarx.ast;
+package com.checkmarx.ast.mask;
 
+import com.checkmarx.ast.BaseTest;
 import com.checkmarx.ast.mask.MaskResult;
 import com.checkmarx.ast.mask.MaskedSecret;
 import com.fasterxml.jackson.databind.ObjectMapper;
