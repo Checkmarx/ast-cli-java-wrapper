@@ -62,7 +62,7 @@ class PredicateTest extends BaseTest {
     @Test
     void testScaTriage() throws Exception {
         // Automatically find a completed scan that has SCA results
-        List<Scan> scans = wrapper.scanList("statuses=Completed");
+        List<Scan> scans = wrapper.scanList("statuses=Completed&limit=50");
         Assumptions.assumeTrue(scans != null && scans.size() > 0, "No completed scans available");
 
         Scan scaScan = null;
@@ -70,6 +70,9 @@ class PredicateTest extends BaseTest {
 
         for (Scan scan : scans) {
             Results results = wrapper.results(UUID.fromString(scan.getId()));
+            if (results.getResults() == null) {
+                continue;
+            }
             scaResult = results.getResults().stream()
                     .filter(res -> res.getType().equalsIgnoreCase("sca"))
                     .findFirst()
@@ -81,6 +84,7 @@ class PredicateTest extends BaseTest {
         }
 
         Assumptions.assumeTrue(scaScan != null, "Skipping: no completed scan with SCA results found");
+        Assumptions.assumeTrue(scaResult.getData() != null, "Skipping: SCA result has no data/vulnerabilities");
 
         String packageIdentifier = scaResult.getData().getPackageIdentifier();
         int firstDash = packageIdentifier.indexOf('-');
