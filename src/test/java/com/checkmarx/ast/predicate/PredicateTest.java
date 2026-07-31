@@ -62,7 +62,7 @@ class PredicateTest extends BaseTest {
     @Test
     void testScaTriage() throws Exception {
         // Automatically find a completed scan that has SCA results
-        List<Scan> scans = wrapper.scanList("statuses=Completed&limit=50");
+        List<Scan> scans = wrapper.scanList("statuses=Completed");
         Assumptions.assumeTrue(scans != null && scans.size() > 0, "No completed scans available");
 
         Scan scaScan = null;
