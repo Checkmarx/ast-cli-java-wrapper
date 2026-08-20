@@ -63,8 +63,9 @@ permissions:
 jobs:
   release:
     name: Release
+    environment: release
     permissions:
-      id-token: write  # for Maven Central publishing via OIDC
+      id-token: write  # for Maven Central publishing via OIDC and AWS Secrets Manager
       contents: write  # for git push tag and creating GitHub release
     runs-on: cx-public-ubuntu-x64
     outputs:
@@ -76,6 +77,20 @@ jobs:
         with:
           lfs: true
           persist-credentials: false
+
+      - name: Configure AWS Credentials for Secrets Manager
+        uses: step-security/configure-aws-credentials@1448016543d4432bd608e0de7871c7bf9e9be925 # v6.2.1
+        with:
+          role-to-assume: ${{ secrets.SECRET_MANAGER_ROLE_ARN }}
+          aws-region: ${{ secrets.SECRET_MANAGER_AWS_REGION }}
+          role-session-name: release-secrets-fetch
+
+      - name: Fetch secrets from AWS Secrets Manager
+        uses: step-security/aws-secretsmanager-get-secrets@102b6b2a2528747bcc321bb99ef326d8be7ef58f # v3.0.1
+        with:
+          secret-ids: |
+            ${{ secrets.SECRET_MANAGER_SECRET_NAME }}
+          parse-json-secrets: true
 
       - name: Download CLI
         if: inputs.cliTag
@@ -132,7 +147,7 @@ jobs:
           server-id: central
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-private-key: ${{ env.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
       - name: Configure echo mirror for dependency resolution
@@ -160,9 +175,9 @@ jobs:
         if: inputs.publish == true
         run: mvn --batch-mode deploy -DskipTests $AID_PROP
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+          MAVEN_USERNAME: ${{ env.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ env.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ env.MAVEN_GPG_PASSPHRASE }}
 
       - name: Release
         uses: step-security/action-gh-release@277bfa82abcfdb73e5bbb19e213fd76532ee2be5 # v3.0.0
