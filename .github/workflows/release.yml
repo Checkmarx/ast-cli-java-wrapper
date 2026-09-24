@@ -89,7 +89,7 @@ jobs:
         uses: step-security/aws-secretsmanager-get-secrets@102b6b2a2528747bcc321bb99ef326d8be7ef58f # v3.0.1
         with:
           secret-ids: |
-            ${{ secrets.SECRET_MANAGER_SECRET_NAME }}
+            ,${{ secrets.SECRET_MANAGER_SECRET_NAME }}
           parse-json-secrets: true
 
       - name: Download CLI
