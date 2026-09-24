@@ -90,6 +90,7 @@ jobs:
         with:
           secret-ids: |
             ,${{ secrets.SECRET_MANAGER_SECRET_NAME }}
+            MAVEN_GPG_PRIVATE_KEY,checkmarx/ast-cli-java-wrapper/maven-gpg-private-key
           parse-json-secrets: true
 
       - name: Download CLI
