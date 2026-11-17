@@ -27,10 +27,10 @@ jobs:
         with:
           persist-credentials: false
       - name: Checkmarx One CLI Action
-        uses: checkmarx/ast-github-action@ef93013c95adc60160bc22060875e90800d3ecfc #v.2.3.19
+        uses: checkmarx/ast-github-action@58c998c5d78b3ecfa51e7cbde852d5565d5dea0b #v.2.3.47
         with:
           base_uri: ${{ secrets.AST_RND_SCANS_BASE_URI }}
           cx_tenant: ${{ secrets.AST_RND_SCANS_TENANT }}
           cx_client_id: ${{ secrets.AST_RND_SCANS_CLIENT_ID }}
           cx_client_secret: ${{ secrets.AST_RND_SCANS_CLIENT_SECRET }}
-          additional_params: --tags sypher --file-filter-ext "!src/test/resources/Dockerfile" --threshold "sca-critical=1;sca-high=1;sca-medium=1;sca-low=1;sast-critical=1;sast-high=1;sast-medium=1;sast-low=1;iac-security-critical=1;iac-security-high=1;iac-security-medium=1;iac-security-low=1"
+          scan_params: --tags sypher --file-filter-ext "!src/test/resources/Dockerfile" --threshold "sca-critical=1;sca-high=1;sca-medium=1;sca-low=1;sast-critical=1;sast-high=1;sast-medium=1;sast-low=1;iac-security-critical=1;iac-security-high=1;iac-security-medium=1;iac-security-low=1"
