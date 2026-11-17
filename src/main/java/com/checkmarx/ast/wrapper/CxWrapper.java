@@ -19,6 +19,7 @@ import com.checkmarx.ast.results.Results;
 import com.checkmarx.ast.results.ResultsSummary;
 import com.checkmarx.ast.results.result.Node;
 import com.checkmarx.ast.scan.Scan;
+import com.checkmarx.ast.telemetry.TelemetryEvent;
 import com.checkmarx.ast.tenant.TenantSetting;
 import com.checkmarx.ast.utils.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -814,6 +815,60 @@ public class CxWrapper {
         arguments.add(totalCount.toString());
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, line -> line);
+    }
+
+    /**
+     * Executes the telemetry AI command with the extended Dev Assist analytics attributes.
+     * Blank attributes are not sent to the CLI. The agent name is taken from {@link CxConfig#getAgentName()}.
+     *
+     * @param event the telemetry event attributes
+     * @return Command output as string
+     * @throws IOException if I/O error occurs
+     * @throws InterruptedException if command execution is interrupted
+     * @throws CxException if CLI command fails
+     */
+    public String telemetryAIEvent(@NonNull TelemetryEvent event)
+            throws IOException, InterruptedException, CxException {
+        this.logger.info("Executing telemetry AI event with provider: {}, type: {}, subType: {}",
+                         event.getAiProvider(), event.getEventType(), event.getSubType());
+
+        return Execution.executeCommand(withConfigArguments(buildTelemetryArguments(event)), logger, line -> line);
+    }
+
+    static List<String> buildTelemetryArguments(TelemetryEvent event) {
+        List<String> arguments = new ArrayList<>();
+        arguments.add(CxConstants.CMD_TELEMETRY);
+        arguments.add(CxConstants.SUB_CMD_TELEMETRY_AI);
+        addIfNotBlank(arguments, CxConstants.AI_PROVIDER, event.getAiProvider());
+        addIfNotBlank(arguments, CxConstants.TYPE, event.getEventType());
+        addIfNotBlank(arguments, CxConstants.SUB_TYPE, event.getSubType());
+        addIfNotBlank(arguments, CxConstants.ENGINE, event.getEngine());
+        addIfNotBlank(arguments, CxConstants.PROBLEM_SEVERITY, event.getProblemSeverity());
+        addIfNotBlank(arguments, CxConstants.SCAN_TYPE_FLAG, event.getScanType());
+        addIfNotBlank(arguments, CxConstants.STATUS, event.getStatus());
+        addIfNotBlank(arguments, CxConstants.STATUS_RESULT, event.getStatusResult());
+        if (event.getTotalCount() != null) {
+            arguments.add(CxConstants.TOTAL_COUNT);
+            arguments.add(event.getTotalCount().toString());
+        }
+        addIfNotBlank(arguments, CxConstants.AGENT_VERSION, event.getAgentVersion());
+        addIfNotBlank(arguments, CxConstants.CX_PLUGIN_VERSION, event.getCxPluginVersion());
+        addIfNotBlank(arguments, CxConstants.PLUGIN_TYPE, event.getPluginType());
+        addIfNotBlank(arguments, CxConstants.REPO_URL, event.getRepoUrl());
+        addIfNotBlank(arguments, CxConstants.INSTALLATION_ID, event.getInstallationId());
+        addIfNotBlank(arguments, CxConstants.AUTH_METHOD, event.getAuthMethod());
+        addIfNotBlank(arguments, CxConstants.VULNERABILITY_ID, event.getVulnerabilityId());
+        addIfNotBlank(arguments, CxConstants.REMEDIATION_MODE, event.getRemediationMode());
+        addIfNotBlank(arguments, CxConstants.AI_AGENT_SESSION_ID, event.getAiAgentSessionId());
+        addIfNotBlank(arguments, CxConstants.API_VERSION, event.getApiVersion());
+        return arguments;
+    }
+
+    private static void addIfNotBlank(List<String> arguments, String flag, String value) {
+        if (StringUtils.isNotBlank(value)) {
+            arguments.add(flag);
+            arguments.add(value);
+        }
     }
 
     private int getIndexOfBfLNode(List<Node> bflNodes, List<Node> resultNodes) {
