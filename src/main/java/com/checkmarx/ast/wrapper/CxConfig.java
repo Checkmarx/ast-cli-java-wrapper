@@ -32,6 +32,14 @@ public class CxConfig {
     }
 
     List<String> toArguments() {
+        return toArguments(true);
+    }
+
+    /**
+     * @param includeAgent when false, {@code --agent} is not added, so a caller that sends its own agent
+     *                     (e.g. a telemetry event) does not send the flag twice.
+     */
+    List<String> toArguments(boolean includeAgent) {
         List<String> commands = new ArrayList<>();
 
         if (StringUtils.isNotBlank(getClientId()) && StringUtils.isNotBlank(getApiKey())) {
@@ -66,7 +74,7 @@ public class CxConfig {
             commands.add(CxConstants.BASE_AUTH_URI);
             commands.add(getBaseAuthUri());
         }
-        if (getAgentName() != null && !getAgentName().isEmpty()) {
+        if (includeAgent && getAgentName() != null && !getAgentName().isEmpty()) {
             commands.add("--agent");
             commands.add(getAgentName()); 
         }        

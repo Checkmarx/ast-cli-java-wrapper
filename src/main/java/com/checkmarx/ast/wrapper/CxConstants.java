@@ -99,12 +99,7 @@ public final class CxConstants {
     static final String CX_PLUGIN_VERSION = "--cx-plugin-version";
     static final String PLUGIN_TYPE = "--plugin-type";
     static final String REPO_URL = "--repo-url";
-    static final String INSTALLATION_ID = "--installation-id";
-    static final String AUTH_METHOD = "--auth-method";
-    static final String VULNERABILITY_ID = "--vulnerability-id";
-    static final String REMEDIATION_MODE = "--remediation-mode";
-    static final String AI_AGENT_SESSION_ID = "--ai-agent-session-id";
-    static final String API_VERSION = "--api-version";
+    static final String EVENT_ATTRIBUTES = "--event-attributes";
     static final String DOCKER = "docker";
     static final String PODMAN = "podman";
     static final String PODMAN_FALLBACK_PATH = "/usr/local/bin/podman";
