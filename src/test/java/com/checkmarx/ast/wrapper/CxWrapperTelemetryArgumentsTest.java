@@ -29,6 +29,7 @@ class CxWrapperTelemetryArgumentsTest {
                 .cxPluginVersion("2.0.1")
                 .pluginType("IDE")
                 .repoUrl("https://github.com/org/repo")
+                .apiVersion("v2")
                 .eventAttribute("vulnerabilityId", "CVE-2024-0001")
                 .eventAttribute("remediationMode", "DevAssist")
                 .build();
@@ -51,6 +52,7 @@ class CxWrapperTelemetryArgumentsTest {
                 "--cx-plugin-version", "2.0.1",
                 "--plugin-type", "IDE",
                 "--repo-url", "https://github.com/org/repo",
+                "--api-version", "v2",
                 "--event-attributes", "vulnerabilityId=CVE-2024-0001;remediationMode=DevAssist"), args);
     }
 
@@ -80,6 +82,21 @@ class CxWrapperTelemetryArgumentsTest {
                 .eventAttribute("a", "")
                 .eventAttribute("b;c", "1")
                 .build();
+
+        assertEquals(Arrays.asList("telemetry", "ai"), CxWrapper.buildTelemetryArguments(event));
+    }
+
+    @Test
+    void testBuildTelemetryArguments_apiVersionIsTopLevelFlagNotAnEventAttribute() {
+        TelemetryEvent event = TelemetryEvent.builder().eventType("Scan").apiVersion("v2").build();
+
+        assertEquals(Arrays.asList("telemetry", "ai", "--type", "Scan", "--api-version", "v2"),
+                CxWrapper.buildTelemetryArguments(event));
+    }
+
+    @Test
+    void testBuildTelemetryArguments_blankApiVersionIsOmitted() {
+        TelemetryEvent event = TelemetryEvent.builder().apiVersion(" ").build();
 
         assertEquals(Arrays.asList("telemetry", "ai"), CxWrapper.buildTelemetryArguments(event));
     }
