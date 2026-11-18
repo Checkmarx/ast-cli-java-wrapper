@@ -819,7 +819,9 @@ public class CxWrapper {
 
     /**
      * Executes the telemetry AI command with the extended Dev Assist analytics attributes.
-     * Blank attributes are not sent to the CLI. The agent name is taken from {@link CxConfig#getAgentName()}.
+     * Blank attributes are not sent to the CLI. Event specific attributes are sent as one
+     * {@code --event-attributes key=value;key=value} argument. When {@link TelemetryEvent#getAgent()} is set it
+     * replaces {@link CxConfig#getAgentName()} for this call, so {@code --agent} is never sent twice.
      *
      * @param event the telemetry event attributes
      * @return Command output as string
@@ -832,7 +834,12 @@ public class CxWrapper {
         this.logger.info("Executing telemetry AI event with provider: {}, type: {}, subType: {}",
                          event.getAiProvider(), event.getEventType(), event.getSubType());
 
-        return Execution.executeCommand(withConfigArguments(buildTelemetryArguments(event)), logger, line -> line);
+        boolean includeConfigAgent = StringUtils.isBlank(event.getAgent());
+        List<String> arguments = new ArrayList<>();
+        arguments.add(this.executable);
+        arguments.addAll(buildTelemetryArguments(event));
+        arguments.addAll(this.cxConfig.toArguments(includeConfigAgent));
+        return Execution.executeCommand(arguments, logger, line -> line);
     }
 
     static List<String> buildTelemetryArguments(TelemetryEvent event) {
@@ -851,17 +858,34 @@ public class CxWrapper {
             arguments.add(CxConstants.TOTAL_COUNT);
             arguments.add(event.getTotalCount().toString());
         }
+        addIfNotBlank(arguments, CxConstants.AGENT, event.getAgent());
         addIfNotBlank(arguments, CxConstants.AGENT_VERSION, event.getAgentVersion());
         addIfNotBlank(arguments, CxConstants.CX_PLUGIN_VERSION, event.getCxPluginVersion());
         addIfNotBlank(arguments, CxConstants.PLUGIN_TYPE, event.getPluginType());
         addIfNotBlank(arguments, CxConstants.REPO_URL, event.getRepoUrl());
-        addIfNotBlank(arguments, CxConstants.INSTALLATION_ID, event.getInstallationId());
-        addIfNotBlank(arguments, CxConstants.AUTH_METHOD, event.getAuthMethod());
-        addIfNotBlank(arguments, CxConstants.VULNERABILITY_ID, event.getVulnerabilityId());
-        addIfNotBlank(arguments, CxConstants.REMEDIATION_MODE, event.getRemediationMode());
-        addIfNotBlank(arguments, CxConstants.AI_AGENT_SESSION_ID, event.getAiAgentSessionId());
-        addIfNotBlank(arguments, CxConstants.API_VERSION, event.getApiVersion());
+        addIfNotBlank(arguments, CxConstants.EVENT_ATTRIBUTES, serializeEventAttributes(event.getEventAttributes()));
         return arguments;
+    }
+
+    /**
+     * Serializes attributes as {@code key=value;key=value}. Entries with a blank value or an invalid key
+     * (blank, or containing ';' or '=') are left out. ';' inside a value is replaced with '_' so it cannot break
+     * the format; '=' is allowed in a value because the CLI splits each pair on the first '=' only.
+     */
+    static String serializeEventAttributes(Map<String, String> attributes) {
+        if (attributes == null || attributes.isEmpty()) {
+            return "";
+        }
+        List<String> pairs = new ArrayList<>();
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (StringUtils.isBlank(key) || key.contains(";") || key.contains("=") || StringUtils.isBlank(value)) {
+                continue;
+            }
+            pairs.add(key + "=" + value.replace(';', '_'));
+        }
+        return String.join(";", pairs);
     }
 
     private static void addIfNotBlank(List<String> arguments, String flag, String value) {

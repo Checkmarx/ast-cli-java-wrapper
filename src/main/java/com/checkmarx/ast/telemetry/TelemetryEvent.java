@@ -2,19 +2,24 @@ package com.checkmarx.ast.telemetry;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Singular;
+
+import java.util.Map;
 
 /**
  * Attributes of a Dev Assist telemetry event sent through {@code cx telemetry ai}.
  * <p>
  * Only non-blank values are forwarded to the CLI. The CLI itself adds the session, unique and machine identifiers.
- * The agent name is taken from the wrapper configuration ({@code CxConfig#getAgentName()}).
+ * Event specific values (for example {@code installationId}, {@code authMethod}, {@code vulnerabilityId},
+ * {@code remediationMode}, {@code apiVersion}) go in {@link #eventAttributes} and are sent as a single
+ * {@code --event-attributes "key=value;key=value"} argument, which the CLI nests under {@code eventAttributes}.
  */
 @Getter
 @Builder
 public class TelemetryEvent {
     /** AI provider name (e.g. "Copilot"). */
     private final String aiProvider;
-    /** Event type (e.g. "click", "authentication", "installation", "scan", "remediation"). */
+    /** Event type (e.g. "click", "authentication", "Scan"). */
     private final String eventType;
     /** Event sub type (e.g. "fixWithAIChat"). */
     private final String subType;
@@ -30,24 +35,24 @@ public class TelemetryEvent {
     private final String statusResult;
     /** Number of findings, sent only when not null. */
     private final Integer totalCount;
+    /**
+     * IDE or agent name (e.g. "Eclipse"). When set, it is sent as {@code --agent} and replaces
+     * {@code CxConfig#getAgentName()} for this call. When blank, the configured agent name is used.
+     */
+    private final String agent;
     /** Version of the host IDE / agent. */
     private final String agentVersion;
     /** Version of the Checkmarx plugin. */
     private final String cxPluginVersion;
-    /** Plugin type (e.g. "checkmarx", "devassist"). */
+    /** Plugin type (e.g. "IDE"). */
     private final String pluginType;
     /** Repository URL of the scanned project. */
     private final String repoUrl;
-    /** Plugin installation identifier. */
-    private final String installationId;
-    /** Authentication method (e.g. "apiKey", "oauth"). */
-    private final String authMethod;
-    /** Identifier of the vulnerability being remediated. */
-    private final String vulnerabilityId;
-    /** Remediation mode. */
-    private final String remediationMode;
-    /** Identifier of the AI agent session. */
-    private final String aiAgentSessionId;
-    /** API version of the event schema. */
-    private final String apiVersion;
+    /**
+     * Event specific attributes, sent as {@code --event-attributes key=value;key=value}.
+     * Entries with a blank value or an invalid key (blank, or containing ';' or '=') are left out,
+     * and ';' inside a value is replaced with '_'.
+     */
+    @Singular
+    private final Map<String, String> eventAttributes;
 }
