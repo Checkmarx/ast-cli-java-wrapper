@@ -11,7 +11,7 @@ import java.util.Map;
  * <p>
  * Only non-blank values are forwarded to the CLI. The CLI itself adds the session, unique and machine identifiers.
  * Event specific values (for example {@code installationId}, {@code authMethod}, {@code vulnerabilityId},
- * {@code remediationMode}, {@code apiVersion}) go in {@link #eventAttributes} and are sent as a single
+ * {@code remediationMode}) go in {@link #eventAttributes} and are sent as a single
  * {@code --event-attributes "key=value;key=value"} argument, which the CLI nests under {@code eventAttributes}.
  */
 @Getter
@@ -48,6 +48,8 @@ public class TelemetryEvent {
     private final String pluginType;
     /** Repository URL of the scanned project. */
     private final String repoUrl;
+    /** Telemetry API version (e.g. "v2"). Sent as the top-level {@code --api-version} flag, like the JavaScript wrapper. */
+    private final String apiVersion;
     /**
      * Event specific attributes, sent as {@code --event-attributes key=value;key=value}.
      * Entries with a blank value or an invalid key (blank, or containing ';' or '=') are left out,

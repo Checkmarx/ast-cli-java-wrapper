@@ -863,6 +863,7 @@ public class CxWrapper {
         addIfNotBlank(arguments, CxConstants.CX_PLUGIN_VERSION, event.getCxPluginVersion());
         addIfNotBlank(arguments, CxConstants.PLUGIN_TYPE, event.getPluginType());
         addIfNotBlank(arguments, CxConstants.REPO_URL, event.getRepoUrl());
+        addIfNotBlank(arguments, CxConstants.API_VERSION, event.getApiVersion());
         addIfNotBlank(arguments, CxConstants.EVENT_ATTRIBUTES, serializeEventAttributes(event.getEventAttributes()));
         return arguments;
     }
