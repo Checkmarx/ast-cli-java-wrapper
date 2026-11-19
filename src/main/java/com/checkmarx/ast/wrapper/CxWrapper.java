@@ -853,8 +853,7 @@ public class CxWrapper {
         addIfNotBlank(arguments, CxConstants.PROBLEM_SEVERITY, event.getProblemSeverity());
         addIfNotBlank(arguments, CxConstants.SCAN_TYPE_FLAG, event.getScanType());
         addIfNotBlank(arguments, CxConstants.STATUS, event.getStatus());
-        addIfNotBlank(arguments, CxConstants.STATUS_RESULT, event.getStatusResult());
-        if (event.getTotalCount() != null) {
+        if (event.getTotalCount() != null && event.getTotalCount() >= 0) {
             arguments.add(CxConstants.TOTAL_COUNT);
             arguments.add(event.getTotalCount().toString());
         }
@@ -862,6 +861,7 @@ public class CxWrapper {
         addIfNotBlank(arguments, CxConstants.AGENT_VERSION, event.getAgentVersion());
         addIfNotBlank(arguments, CxConstants.CX_PLUGIN_VERSION, event.getCxPluginVersion());
         addIfNotBlank(arguments, CxConstants.PLUGIN_TYPE, event.getPluginType());
+        addIfNotBlank(arguments, CxConstants.STATUS_RESULT, event.getStatusResult());
         addIfNotBlank(arguments, CxConstants.REPO_URL, event.getRepoUrl());
         addIfNotBlank(arguments, CxConstants.API_VERSION, event.getApiVersion());
         addIfNotBlank(arguments, CxConstants.EVENT_ATTRIBUTES, serializeEventAttributes(event.getEventAttributes()));

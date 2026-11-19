@@ -45,12 +45,12 @@ class CxWrapperTelemetryArgumentsTest {
                 "--problem-severity", "High",
                 "--scan-type", "Oss",
                 "--status", "success",
-                "--status-result", "ok",
                 "--total-count", "3",
                 "--agent", "Eclipse",
                 "--agent-version", "2024.1",
                 "--cx-plugin-version", "2.0.1",
                 "--plugin-type", "IDE",
+                "--status-result", "ok",
                 "--repo-url", "https://github.com/org/repo",
                 "--api-version", "v2",
                 "--event-attributes", "vulnerabilityId=CVE-2024-0001;remediationMode=DevAssist"), args);
@@ -108,6 +108,13 @@ class CxWrapperTelemetryArgumentsTest {
         List<String> args = CxWrapper.buildTelemetryArguments(event);
 
         assertEquals(Arrays.asList("telemetry", "ai", "--total-count", "0"), args);
+    }
+
+    @Test
+    void testBuildTelemetryArguments_negativeTotalCountIsOmitted() {
+        TelemetryEvent event = TelemetryEvent.builder().totalCount(-1).build();
+
+        assertEquals(Arrays.asList("telemetry", "ai"), CxWrapper.buildTelemetryArguments(event));
     }
 
     @Test
