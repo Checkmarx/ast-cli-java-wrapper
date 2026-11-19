@@ -19,6 +19,7 @@ import com.checkmarx.ast.results.Results;
 import com.checkmarx.ast.results.ResultsSummary;
 import com.checkmarx.ast.results.result.Node;
 import com.checkmarx.ast.scan.Scan;
+import com.checkmarx.ast.telemetry.TelemetryEvent;
 import com.checkmarx.ast.tenant.TenantSetting;
 import com.checkmarx.ast.utils.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -814,6 +815,85 @@ public class CxWrapper {
         arguments.add(totalCount.toString());
 
         return Execution.executeCommand(withConfigArguments(arguments), logger, line -> line);
+    }
+
+    /**
+     * Executes the telemetry AI command with the extended Dev Assist analytics attributes.
+     * Blank attributes are not sent to the CLI. Event specific attributes are sent as one
+     * {@code --event-attributes key=value;key=value} argument. When {@link TelemetryEvent#getAgent()} is set it
+     * replaces {@link CxConfig#getAgentName()} for this call, so {@code --agent} is never sent twice.
+     *
+     * @param event the telemetry event attributes
+     * @return Command output as string
+     * @throws IOException if I/O error occurs
+     * @throws InterruptedException if command execution is interrupted
+     * @throws CxException if CLI command fails
+     */
+    public String telemetryAIEvent(@NonNull TelemetryEvent event)
+            throws IOException, InterruptedException, CxException {
+        this.logger.info("Executing telemetry AI event with provider: {}, type: {}, subType: {}",
+                         event.getAiProvider(), event.getEventType(), event.getSubType());
+
+        boolean includeConfigAgent = StringUtils.isBlank(event.getAgent());
+        List<String> arguments = new ArrayList<>();
+        arguments.add(this.executable);
+        arguments.addAll(buildTelemetryArguments(event));
+        arguments.addAll(this.cxConfig.toArguments(includeConfigAgent));
+        return Execution.executeCommand(arguments, logger, line -> line);
+    }
+
+    static List<String> buildTelemetryArguments(TelemetryEvent event) {
+        List<String> arguments = new ArrayList<>();
+        arguments.add(CxConstants.CMD_TELEMETRY);
+        arguments.add(CxConstants.SUB_CMD_TELEMETRY_AI);
+        addIfNotBlank(arguments, CxConstants.AI_PROVIDER, event.getAiProvider());
+        addIfNotBlank(arguments, CxConstants.TYPE, event.getEventType());
+        addIfNotBlank(arguments, CxConstants.SUB_TYPE, event.getSubType());
+        addIfNotBlank(arguments, CxConstants.ENGINE, event.getEngine());
+        addIfNotBlank(arguments, CxConstants.PROBLEM_SEVERITY, event.getProblemSeverity());
+        addIfNotBlank(arguments, CxConstants.SCAN_TYPE_FLAG, event.getScanType());
+        addIfNotBlank(arguments, CxConstants.STATUS, event.getStatus());
+        if (event.getTotalCount() != null && event.getTotalCount() >= 0) {
+            arguments.add(CxConstants.TOTAL_COUNT);
+            arguments.add(event.getTotalCount().toString());
+        }
+        addIfNotBlank(arguments, CxConstants.AGENT, event.getAgent());
+        addIfNotBlank(arguments, CxConstants.AGENT_VERSION, event.getAgentVersion());
+        addIfNotBlank(arguments, CxConstants.CX_PLUGIN_VERSION, event.getCxPluginVersion());
+        addIfNotBlank(arguments, CxConstants.PLUGIN_TYPE, event.getPluginType());
+        addIfNotBlank(arguments, CxConstants.STATUS_RESULT, event.getStatusResult());
+        addIfNotBlank(arguments, CxConstants.REPO_URL, event.getRepoUrl());
+        addIfNotBlank(arguments, CxConstants.API_VERSION, event.getApiVersion());
+        addIfNotBlank(arguments, CxConstants.EVENT_ATTRIBUTES, serializeEventAttributes(event.getEventAttributes()));
+        return arguments;
+    }
+
+    /**
+     * Serializes attributes as {@code key=value;key=value}. Entries with a blank value or an invalid key
+     * (blank, or containing ';' or '=') are left out. ';' inside a value is replaced with '_' so it cannot break
+     * the format; '=' is allowed in a value because the CLI splits each pair on the first '=' only.
+     */
+    static String serializeEventAttributes(Map<String, String> attributes) {
+        if (attributes == null || attributes.isEmpty()) {
+            return "";
+        }
+        List<String> pairs = new ArrayList<>();
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (StringUtils.isBlank(key) || key.contains(";") || key.contains("=") || StringUtils.isBlank(value)) {
+                continue;
+            }
+            pairs.add(key + "=" + value.replace(';', '_'));
+        }
+        return String.join(";", pairs);
+    }
+
+    private static void addIfNotBlank(List<String> arguments, String flag, String value) {
+        if (StringUtils.isNotBlank(value)) {
+            arguments.add(flag);
+            arguments.add(value);
+        }
     }
 
     private int getIndexOfBfLNode(List<Node> bflNodes, List<Node> resultNodes) {
