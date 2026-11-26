@@ -32,6 +32,10 @@ public class CxConfig {
     }
 
     List<String> toArguments() {
+        return toArguments(true);
+    }
+
+    List<String> toArguments(boolean includeAgent) {
         List<String> commands = new ArrayList<>();
 
         if (StringUtils.isNotBlank(getClientId()) && StringUtils.isNotBlank(getApiKey())) {
@@ -66,7 +70,7 @@ public class CxConfig {
             commands.add(CxConstants.BASE_AUTH_URI);
             commands.add(getBaseAuthUri());
         }
-        if (getAgentName() != null && !getAgentName().isEmpty()) {
+        if (includeAgent && getAgentName() != null && !getAgentName().isEmpty()) {
             commands.add("--agent");
             commands.add(getAgentName()); 
         }        

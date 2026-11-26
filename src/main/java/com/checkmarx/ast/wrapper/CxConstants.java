@@ -94,6 +94,13 @@ public final class CxConstants {
     static final String SCAN_TYPE_FLAG = "--scan-type";
     static final String STATUS = "--status";
     static final String TOTAL_COUNT = "--total-count";
+    static final String STATUS_RESULT = "--status-result";
+    static final String AGENT_VERSION = "--agent-version";
+    static final String CX_PLUGIN_VERSION = "--cx-plugin-version";
+    static final String PLUGIN_TYPE = "--plugin-type";
+    static final String REPO_URL = "--repo-url";
+    static final String API_VERSION = "--api-version";
+    static final String EVENT_ATTRIBUTES = "--event-attributes";
     static final String DOCKER = "docker";
     static final String PODMAN = "podman";
     static final String PODMAN_FALLBACK_PATH = "/usr/local/bin/podman";
