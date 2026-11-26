@@ -818,16 +818,7 @@ public class CxWrapper {
     }
 
     /**
-     * Executes the telemetry AI command with the extended Dev Assist analytics attributes.
-     * Blank attributes are not sent to the CLI. Event specific attributes are sent as one
-     * {@code --event-attributes key=value;key=value} argument. When {@link TelemetryEvent#getAgent()} is set it
-     * replaces {@link CxConfig#getAgentName()} for this call, so {@code --agent} is never sent twice.
-     *
-     * @param event the telemetry event attributes
-     * @return Command output as string
-     * @throws IOException if I/O error occurs
-     * @throws InterruptedException if command execution is interrupted
-     * @throws CxException if CLI command fails
+     * A non-blank event agent replaces the configured agent name for this call.
      */
     public String telemetryAIEvent(@NonNull TelemetryEvent event)
             throws IOException, InterruptedException, CxException {
@@ -868,11 +859,7 @@ public class CxWrapper {
         return arguments;
     }
 
-    /**
-     * Serializes attributes as {@code key=value;key=value}. Entries with a blank value or an invalid key
-     * (blank, or containing ';' or '=') are left out. ';' inside a value is replaced with '_' so it cannot break
-     * the format; '=' is allowed in a value because the CLI splits each pair on the first '=' only.
-     */
+    // '=' is allowed in values because the CLI splits each pair on the first '='.
     static String serializeEventAttributes(Map<String, String> attributes) {
         if (attributes == null || attributes.isEmpty()) {
             return "";

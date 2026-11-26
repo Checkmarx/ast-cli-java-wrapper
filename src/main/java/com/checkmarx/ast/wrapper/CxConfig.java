@@ -35,10 +35,6 @@ public class CxConfig {
         return toArguments(true);
     }
 
-    /**
-     * @param includeAgent when false, {@code --agent} is not added, so a caller that sends its own agent
-     *                     (e.g. a telemetry event) does not send the flag twice.
-     */
     List<String> toArguments(boolean includeAgent) {
         List<String> commands = new ArrayList<>();
 

@@ -2,6 +2,9 @@ package com.checkmarx.ast.wrapper;
 
 import com.checkmarx.ast.telemetry.TelemetryEvent;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+import org.slf4j.Logger;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -9,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 class CxWrapperTelemetryArgumentsTest {
 
@@ -165,5 +171,46 @@ class CxWrapperTelemetryArgumentsTest {
         CxConfig config = CxConfig.builder().apiKey("key").agentName("Eclipse_1.0.0").build();
 
         assertEquals(Arrays.asList("--apikey", "key"), config.toArguments(false));
+    }
+
+    @Test
+    void testBuilder_nullEventAttributesIsIgnored() {
+        TelemetryEvent event = TelemetryEvent.builder().eventAttributes(null).build();
+
+        assertTrue(event.getEventAttributes().isEmpty());
+    }
+
+    @Test
+    void testTelemetryAIEvent_eventAgentReplacesConfigAgent() throws Exception {
+        List<String> args = executeTelemetryAIEvent("Eclipse_1.0.0", TelemetryEvent.builder().agent("VS Code").build());
+
+        assertEquals(Arrays.asList("cx", "telemetry", "ai", "--agent", "VS Code", "--apikey", "key"), args);
+    }
+
+    @Test
+    void testTelemetryAIEvent_blankEventAgentFallsBackToConfigAgent() throws Exception {
+        List<String> args = executeTelemetryAIEvent("Eclipse_1.0.0", TelemetryEvent.builder().agent("  ").build());
+
+        assertEquals(Arrays.asList("cx", "telemetry", "ai", "--apikey", "key", "--agent", "Eclipse_1.0.0"), args);
+    }
+
+    @Test
+    void testTelemetryAIEvent_noAgentWhenNeitherIsSet() throws Exception {
+        List<String> args = executeTelemetryAIEvent(null, TelemetryEvent.builder().build());
+
+        assertEquals(Arrays.asList("cx", "telemetry", "ai", "--apikey", "key"), args);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<String> executeTelemetryAIEvent(String configAgent, TelemetryEvent event) throws Exception {
+        CxConfig config = CxConfig.builder().apiKey("key").agentName(configAgent).pathToExecutable("cx").build();
+        CxWrapper wrapper = new CxWrapper(config, mock(Logger.class));
+        ArgumentCaptor<List<String>> captor = ArgumentCaptor.forClass(List.class);
+
+        try (MockedStatic<Execution> execution = mockStatic(Execution.class)) {
+            wrapper.telemetryAIEvent(event);
+            execution.verify(() -> Execution.executeCommand(captor.capture(), any(), any()));
+        }
+        return captor.getValue();
     }
 }
